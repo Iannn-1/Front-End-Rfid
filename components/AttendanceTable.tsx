@@ -20,7 +20,7 @@ export default function AttendanceTable({ logs }: AttendanceTableProps) {
   const formatTime = (timeString: string) => {
     try {
       const date = new Date(timeString);
-      return format(date, 'hh:mm A');
+      return format(date, 'hh:mm a');
     } catch {
       return timeString;
     }
