@@ -27,13 +27,13 @@ export default function SettingsPage() {
         <UserManagement />
 
         {/* RFID + System config */}
-        <div className={styles.grid + " cols-2"}>
+        <div className={`${styles.grid} ${styles.cols2}`}>
           <RFIDSettings />
           <SystemSettings />
         </div>
 
         {/* Notification + Security config */}
-        <div className={styles.grid + " cols-2"}>
+        <div className={`${styles.grid} ${styles.cols2}`}>
           <NotificationSettings />
           <SecuritySettings />
         </div>

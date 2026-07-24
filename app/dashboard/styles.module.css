@@ -49,17 +49,17 @@
 }
 
 /* cols-2 / cols-3 helper classes (appended via className concatenation) */
-:global(.cols-2) {
+.cols2 {
   grid-template-columns: repeat(2, 1fr);
 }
 
-:global(.cols-3) {
+.cols3 {
   grid-template-columns: repeat(3, 1fr);
 }
 
 @media (max-width: 768px) {
-  :global(.cols-2),
-  :global(.cols-3) {
+  .cols2,
+  .cols3 {
     grid-template-columns: 1fr;
   }
 }

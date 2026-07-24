@@ -20,7 +20,7 @@ export default function ReportsPage() {
 
       <QuickStats />
 
-      <div className={styles.grid + " cols-2"}>
+      <div className={`${styles.grid} ${styles.cols2}`}>
         <ReportGenerator onGenerated={() => setHistoryKey(k => k + 1)} />
         <ReportHistory refreshKey={historyKey} />
       </div>

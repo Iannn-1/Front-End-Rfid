@@ -140,7 +140,7 @@ export default function AttendanceTracker() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {/* Summary Cards */}
-      <div className={styles.grid + " cols-3"}>
+      <div className={`${styles.grid} ${styles.cols3}`}>
         <div className={styles.card}>
           <div className={styles.cardBody}>
             <div className={styles.stat}>
