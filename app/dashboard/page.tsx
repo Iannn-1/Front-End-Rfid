@@ -27,7 +27,7 @@ export default function DashboardPage() {
       <HeroClock />
 
       {/* Two-column layout: attendance summary + gate monitor */}
-      <div className={styles.grid + " cols-2"}>
+      <div className={`${styles.grid} ${styles.cols2}`}>
         <AttendanceSummary />
         <DoorStatusGrid />
       </div>

@@ -14,7 +14,7 @@ export default function AttendancePage() {
         <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Attendance & Location Tracking</h1>
       </div>
       
-      <div className={styles.grid + " cols-2"}>
+      <div className={`${styles.grid} ${styles.cols2}`}>
         <LocationHeatmap />
         <div style={{ display: "grid", gap: 16 }}>
           <QuickSearch />
