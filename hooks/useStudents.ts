@@ -2,8 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Student, StudentFormInput, ApiResponse, ApiErrorResponse } from '@/types';
 
-const fetchStudents = async (): Promise<Student[]> => {
-  const response = await api.get<ApiResponse<Student[]>>('/students');
+const fetchStudents = async (params?: Record<string, string>): Promise<Student[]> => {
+  const query = params ? '?' + new URLSearchParams(params).toString() : '';
+  const response = await api.get<ApiResponse<Student[]>>(`/students${query}`);
   return response.data.data;
 };
 
@@ -22,12 +23,12 @@ const deleteStudent = async (id: string): Promise<{ message: string }> => {
   return response.data.data;
 };
 
-export const useStudents = () => {
+export const useStudents = (filterParams?: Record<string, string>) => {
   const queryClient = useQueryClient();
 
   const studentsQuery = useQuery<Student[], Error>({
-    queryKey: ['students'],
-    queryFn: fetchStudents,
+    queryKey: ['students', filterParams],
+    queryFn: () => fetchStudents(filterParams),
     retry: 3,
   });
 
@@ -38,7 +39,11 @@ export const useStudents = () => {
     },
   });
 
-  const updateStudentMutation = useMutation<Student, ApiErrorResponse, { id: string; data: Partial<StudentFormInput> }>({
+  const updateStudentMutation = useMutation<
+    Student,
+    ApiErrorResponse,
+    { id: string; data: Partial<StudentFormInput> }
+  >({
     mutationFn: ({ id, data }) => updateStudent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
