@@ -3,8 +3,27 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../../styles.module.css";
+import { useStudents } from "@/hooks/useStudents";
+import { useStudentOptions } from "@/hooks/useStudentOptions";
+import { Student as BackendStudent, StudentLevel } from "@/types";
 
 type StudentType = "elementary" | "highschool" | "seniorhigh" | "college";
+
+// Map backend student_level → local StudentType key
+const LEVEL_MAP: Record<StudentLevel, StudentType> = {
+  "Elementary": "elementary",
+  "Junior High School": "highschool",
+  "Senior High School": "seniorhigh",
+  "College": "college",
+};
+
+// Map local StudentType key → backend student_level
+const REVERSE_LEVEL_MAP: Record<StudentType, StudentLevel> = {
+  elementary: "Elementary",
+  highschool: "Junior High School",
+  seniorhigh: "Senior High School",
+  college: "College",
+};
 
 type Student = {
   id: string;
@@ -19,7 +38,38 @@ type Student = {
   tagId: string | null;
   lastSeen: string | null;
   photoUrl?: string;
+  // Extra backend fields preserved for save
+  parent_name?: string;
+  parent_email?: string;
+  parent_phone?: string;
+  signature?: string;
 };
+
+/** Convert a backend student to the local UI shape */
+function toLocal(s: BackendStudent): Student {
+  // Extract year number from grade_level strings like "1st Year" / "Grade 7"
+  const gradeMatch = s.grade_level.match(/(\d+)/);
+  const gradeNum = gradeMatch ? parseInt(gradeMatch[1]) : null;
+
+  return {
+    id: String(s.id),
+    name: s.name,
+    email: s.email ?? "",
+    studentType: LEVEL_MAP[s.student_level] ?? "elementary",
+    grade: gradeNum,
+    section: s.section ?? null,
+    college: null,
+    course: s.course ?? null,
+    status: s.status === "Active" ? "active" : "disabled",
+    tagId: s.rfid_tag_uid,
+    lastSeen: s.updatedAt ?? null,
+    photoUrl: s.profile_photo,
+    parent_name: s.parent_name,
+    parent_email: s.parent_email,
+    parent_phone: s.parent_phone,
+    signature: s.signature,
+  };
+}
 
 // Sub-level options per student type
 const LEVEL_SUBLEVEL: Record<StudentType, { label: string; value: string }[]> = {
@@ -149,19 +199,14 @@ type ResponseList = {
 };
 
 export default function StudentsTable() {
-  const [rows, setRows] = useState<Student[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
 
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<StudentType | "">("");
   const [subLevelFilter, setSubLevelFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [status, setStatus] = useState("");
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -171,36 +216,54 @@ export default function StudentsTable() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Build filter params for the backend
+  const filterParams: Record<string, string> = {};
+  if (levelFilter) filterParams.student_level = REVERSE_LEVEL_MAP[levelFilter];
+  if (status) filterParams.status = status === "active" ? "Active" : "Inactive";
+
+  const { studentsQuery, createStudentMutation, updateStudentMutation, deleteStudentMutation } =
+    useStudents(Object.keys(filterParams).length > 0 ? filterParams : undefined);
+
+  const { data: options } = useStudentOptions();
+
+  // Derive local rows from backend data
+  const allRows: Student[] = useMemo(
+    () => (studentsQuery.data ?? []).map(toLocal),
+    [studentsQuery.data]
+  );
+
+  // Client-side search + pagination
+  const filtered = useMemo(() => {
+    let rows = allRows;
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.email.toLowerCase().includes(q) ||
+          (s.tagId ?? "").toLowerCase().includes(q)
+      );
+    }
+    if (subLevelFilter) {
+      rows = rows.filter((s) => String(s.grade) === subLevelFilter);
+    }
+    if (courseFilter) {
+      rows = rows.filter((s) => s.course === courseFilter);
+    }
+    return rows;
+  }, [allRows, search, subLevelFilter, courseFilter]);
+
+  const total = filtered.length;
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
+  const rows = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchStudents = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-        if (search) params.set("search", search);
-        if (levelFilter) params.set("studentType", levelFilter);
-        if (subLevelFilter) params.set("grade", subLevelFilter);
-        if (courseFilter) params.set("course", courseFilter);
-        if (status) params.set("status", status);
-
-        const res = await fetch(`/api/students?${params.toString()}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load students");
-        const json: ResponseList = await res.json();
-        if (mounted) {
-          setRows(json.data);
-          setTotal(json.total);
-        }
-      } catch (e: any) {
-        if (mounted) setError(e.message || "Error");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchStudents();
-  }, [page, pageSize, search, levelFilter, subLevelFilter, courseFilter, status]);
+  const loading = studentsQuery.isLoading;
+  const error = studentsQuery.error?.message ?? null;
 
   const handleView = (student: Student) => {
     setSelectedStudent(student);
@@ -282,27 +345,45 @@ export default function StudentsTable() {
     }
   };
 
-  const confirmSave = () => {
-    if (editForm) {
+  const confirmSave = async () => {
+    if (!editForm) return;
+    setSaveError(null);
+
+    const gradeLabel =
+      editForm.studentType === "college"
+        ? (["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year"][(editForm.grade ?? 1) - 1] ?? "1st Year")
+        : `Grade ${editForm.grade}`;
+
+    const payload = {
+      rfid_tag_uid: editForm.tagId ?? "",
+      name: editForm.name,
+      email: editForm.email || undefined,
+      student_level: REVERSE_LEVEL_MAP[editForm.studentType],
+      grade_level: gradeLabel,
+      section: editForm.section ?? "A",
+      course: editForm.course || undefined,
+      status: (editForm.status === "active" ? "Active" : "Inactive") as "Active" | "Inactive",
+      profile_photo: photoPreview || undefined,
+      signature: signature || undefined,
+      parent_name: editForm.parent_name ?? "",
+      parent_email: editForm.parent_email ?? "",
+      parent_phone: editForm.parent_phone ?? "",
+    };
+
+    try {
       if (isAdding) {
-        // Add new student to the list
-        const newStudent = { ...editForm, id: `student-${Date.now()}` };
-        setRows([newStudent, ...rows]);
-        setTotal(total + 1);
+        await createStudentMutation.mutateAsync(payload);
       } else {
-        // Update existing student
-        setRows(rows.map(s => s.id === editForm.id ? editForm : s));
-        setSelectedStudent(editForm);
+        await updateStudentMutation.mutateAsync({ id: editForm.id, data: payload });
       }
       setShowSaveConfirm(false);
       setIsEditing(false);
       setIsAdding(false);
       handleClose();
-      
-      // Show success message
-      setTimeout(() => {
-        alert(isAdding ? "✅ Student added successfully!" : "✅ Student updated successfully!");
-      }, 100);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? "Failed to save student";
+      setSaveError(msg);
+      setShowSaveConfirm(false);
     }
   };
 
@@ -310,18 +391,16 @@ export default function StudentsTable() {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedStudent) {
-      // Remove student from the list
-      setRows(rows.filter(s => s.id !== selectedStudent.id));
-      setTotal(total - 1);
+  const confirmDelete = async () => {
+    if (!selectedStudent) return;
+    try {
+      await deleteStudentMutation.mutateAsync(selectedStudent.id);
       setShowDeleteConfirm(false);
       handleClose();
-      
-      // Show success message
-      setTimeout(() => {
-        alert("🗑️ Student deleted successfully!");
-      }, 100);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? "Failed to delete student";
+      setSaveError(msg);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -334,6 +413,7 @@ export default function StudentsTable() {
     setPhotoPreview(null);
     setShowDeleteConfirm(false);
     setShowSaveConfirm(false);
+    setSaveError(null);
   };
 
   return (
@@ -403,12 +483,16 @@ export default function StudentsTable() {
               style={{ background: "#8b3b3b", color: "white", fontWeight: 600 }}
             >
               + Add Student
-            </button>
-          </div>
+            </button>          </div>
         </div>
         <div className={styles.cardBody}>
           {loading && <div aria-busy>Loading students...</div>}
-          {error && <div role="alert">Error: {error}</div>}
+          {error && <div role="alert" style={{ color: "#ef4444" }}>Error: {error}</div>}
+          {saveError && (
+            <div role="alert" style={{ background: "#fef2f2", color: "#ef4444", padding: "10px 16px", borderRadius: 8, marginBottom: 8 }}>
+              ⚠️ {saveError}
+            </div>
+          )}
 
           {!loading && !error && (
             <>
@@ -872,6 +956,41 @@ export default function StudentsTable() {
                       <option value="disabled">Disabled</option>
                     </select>
                   </div>
+                  <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 0" }} />
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Parent Name *</label>
+                      <input
+                        className={styles.input}
+                        value={editForm.parent_name || ""}
+                        onChange={(e) => setEditForm({ ...editForm, parent_name: e.target.value })}
+                        placeholder="Parent / Guardian name"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Parent Phone *</label>
+                      <input
+                        className={styles.input}
+                        value={editForm.parent_phone || ""}
+                        onChange={(e) => setEditForm({ ...editForm, parent_phone: e.target.value })}
+                        placeholder="+63912345678"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Parent Email *</label>
+                    <input
+                      className={styles.input}
+                      type="email"
+                      value={editForm.parent_email || ""}
+                      onChange={(e) => setEditForm({ ...editForm, parent_email: e.target.value })}
+                      placeholder="parent@email.com"
+                    />
+                  </div>
+
+                  <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 0" }} />
+
                   <div>
                     <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>
                       <span style={{ marginRight: 6 }}>✍️</span>Signature
@@ -956,6 +1075,19 @@ export default function StudentsTable() {
                     <span style={{ fontWeight: 600, color: "#6b7280" }}>Last Seen:</span>
                     <span>{selectedStudent.lastSeen ? new Date(selectedStudent.lastSeen).toLocaleString() : "—"}</span>
                   </div>
+                  <div style={{ borderTop: "1px solid #e5e7eb", margin: "8px 0" }} />
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Parent Name:</span>
+                    <span>{selectedStudent.parent_name || "—"}</span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Parent Email:</span>
+                    <span>{selectedStudent.parent_email || "—"}</span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Parent Phone:</span>
+                    <span>{selectedStudent.parent_phone || "—"}</span>
+                  </div>
                 </div>
               )}
 
@@ -986,7 +1118,7 @@ export default function StudentsTable() {
                         className={styles.button}
                         onClick={handleSave}
                         style={{ background: "#8b3b3b", color: "white", display: "flex", alignItems: "center", gap: 6 }}
-                        disabled={!editForm?.name || !editForm?.email}
+                        disabled={!editForm?.name || !editForm?.tagId || !editForm?.parent_name || !editForm?.parent_email || !editForm?.parent_phone}
                       >
                         <span>💾</span> {isAdding ? "Add Student" : "Save Changes"}
                       </button>

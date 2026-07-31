@@ -5,17 +5,32 @@ export interface User {
   role: 'admin' | 'staff';
 }
 
+export type StudentLevel = 'Elementary' | 'Junior High School' | 'Senior High School' | 'College';
+export type StudentStatus = 'Active' | 'Inactive';
+
 export interface Student {
   id: string;
   rfid_tag_uid: string;
   name: string;
+  email?: string;
+  student_level: StudentLevel;
   grade_level: string;
   section: string;
+  course?: string;
+  status: StudentStatus;
+  profile_photo?: string;
+  signature?: string;
   parent_name: string;
   parent_email: string;
   parent_phone: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface StudentOptions {
+  student_levels: StudentLevel[];
+  grade_levels: Record<StudentLevel, string[]>;
+  college_courses: Record<string, string[]>;
 }
 
 export type AttendanceStatus = 'IN' | 'OUT';
@@ -29,11 +44,7 @@ export interface AttendanceLog {
 }
 
 export interface AttendanceLogWithStudent extends AttendanceLog {
-  Student: {
-    name: string;
-    grade_level: string;
-    section: string;
-  };
+  Student: Student;
 }
 
 export interface AttendanceStats {
@@ -55,24 +66,27 @@ export interface ApiErrorResponse {
 
 export type ApiResponseType<T> = ApiResponse<T> | ApiErrorResponse;
 
-// Login response type
 export interface LoginResponse {
   token: string;
   user: User;
 }
 
-// Student form input type
 export interface StudentFormInput {
   rfid_tag_uid: string;
   name: string;
+  email?: string;
+  student_level: StudentLevel;
   grade_level: string;
   section: string;
+  course?: string;
+  status?: StudentStatus;
+  profile_photo?: string;
+  signature?: string;
   parent_name: string;
   parent_email: string;
   parent_phone: string;
 }
 
-// Register form input type
 export interface RegisterFormInput {
   name: string;
   email: string;
@@ -80,7 +94,6 @@ export interface RegisterFormInput {
   role: 'admin' | 'staff';
 }
 
-// Login form input type
 export interface LoginFormInput {
   email: string;
   password: string;
