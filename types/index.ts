@@ -44,11 +44,7 @@ export interface AttendanceLog {
 }
 
 export interface AttendanceLogWithStudent extends AttendanceLog {
-  Student: {
-    name: string;
-    grade_level: string;
-    section: string;
-  };
+  Student: Student;
 }
 
 export interface AttendanceStats {
@@ -70,13 +66,11 @@ export interface ApiErrorResponse {
 
 export type ApiResponseType<T> = ApiResponse<T> | ApiErrorResponse;
 
-// Login response type
 export interface LoginResponse {
   token: string;
   user: User;
 }
 
-// Student form input type — matches the backend POST /students body
 export interface StudentFormInput {
   rfid_tag_uid: string;
   name: string;
@@ -93,7 +87,6 @@ export interface StudentFormInput {
   parent_phone: string;
 }
 
-// Register form input type
 export interface RegisterFormInput {
   name: string;
   email: string;
@@ -101,7 +94,6 @@ export interface RegisterFormInput {
   role: 'admin' | 'staff';
 }
 
-// Login form input type
 export interface LoginFormInput {
   email: string;
   password: string;

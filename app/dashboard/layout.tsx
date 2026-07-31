@@ -8,6 +8,7 @@ import { isAuthenticated, getUser, clearAuth } from "@/lib/auth";
 const NAV_ITEMS = [
   { href: "/dashboard",            label: "Overview",   icon: "⊞" },
   { href: "/dashboard/attendance", label: "Attendance", icon: "📋" },
+  { href: "/dashboard/monitor",    label: "Monitor",    icon: "📺" },
   { href: "/dashboard/students",   label: "Students",   icon: "👨‍🎓" },
   { href: "/dashboard/tags",       label: "RFID Tags",  icon: "🏷️" },
   { href: "/dashboard/reports",    label: "Reports",    icon: "📊" },

@@ -3,30 +3,27 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, getUser } from "@/lib/auth";
+import { useStats } from "@/hooks/useStats";
+import { useStudents } from "@/hooks/useStudents";
+import { useAttendance } from "@/hooks/useAttendance";
 import styles from "./styles.module.css";
 
-type DashboardStats = {
-  totalStudents: number;
-  presentToday: number;
-  activeTags: number;
-  activeReaders: number;
-};
+// ── Live clock ──────────────────────────────────────────────────────────────
+function useClock() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const now    = useClock();
 
-  // Clock
-  useEffect(() => {
-    setMounted(true);
-    const id = setInterval(() => setMounted(true), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const now = mounted ? new Date() : null;
   const timeStr = now
     ? now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
     : "--:--";
@@ -34,33 +31,24 @@ export default function DashboardPage() {
     ? now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
     : "";
 
-  // Auth check
+  const user = typeof window !== "undefined" ? getUser() : null;
+  const greeting = user?.name ? `Good day, ${user.name} 👋` : "Good day 👋";
+
   useEffect(() => {
     if (!isAuthenticated()) router.push("/login");
   }, [router]);
 
-  // Fetch dashboard stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch("/api/dashboard/stats", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data.stats || { totalStudents: 1248, presentToday: 1052, activeTags: 850, activeReaders: 18 });
-        } else {
-          // Fallback to mock stats
-          setStats({ totalStudents: 1248, presentToday: 1052, activeTags: 850, activeReaders: 18 });
-        }
-      } catch {
-        setStats({ totalStudents: 1248, presentToday: 1052, activeTags: 850, activeReaders: 18 });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-    const interval = setInterval(fetchStats, 30_000);
-    return () => clearInterval(interval);
-  }, []);
+  // ── Real backend data ──
+  const { data: statsData, isLoading: statsLoading } = useStats();
+  const { studentsQuery }                             = useStudents();
+  const { data: logs = [], isLoading: logsLoading }  = useAttendance();
+
+  const totalStudents = studentsQuery.data?.length ?? 0;
+  const presentToday  = statsData?.presentCount ?? 0;
+
+  // Gate counts from attendance logs
+  const enteredToday = logs.filter(l => l.status === 'IN').length;
+  const exitedToday  = logs.filter(l => l.status === 'OUT').length;
 
   if (typeof window !== "undefined" && !isAuthenticated()) return null;
 
@@ -69,7 +57,7 @@ export default function DashboardPage() {
       {/* ── Hero banner ── */}
       <div className={styles.heroBanner}>
         <div className={styles.heroLeft}>
-          <div className={styles.heroGreeting}>Good day, Admin 👋</div>
+          <div className={styles.heroGreeting}>{greeting}</div>
           <h1 className={styles.heroTitle}>School RFID Dashboard</h1>
           <p className={styles.heroSub}>{dateStr}</p>
         </div>
@@ -80,12 +68,40 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Stat Cards ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
         {[
-          { label: "Total Students",   value: stats?.totalStudents,   icon: "👨‍🎓", color: "#a94442", bg: "linear-gradient(135deg,#a94442,#c0504d)", link: "/dashboard/students" },
-          { label: "Present Today",    value: stats?.presentToday,    icon: "📋", color: "#d67f00", bg: "linear-gradient(135deg,#d67f00,#f89406)", link: "/dashboard/attendance" },
-          { label: "Active Tags",      value: stats?.activeTags,      icon: "🏷️", color: "#45a164", bg: "linear-gradient(135deg,#45a164,#62b876)", link: "/dashboard/tags" },
-          { label: "RFID Readers",     value: stats?.activeReaders,   icon: "📡", color: "#2779a8", bg: "linear-gradient(135deg,#2779a8,#3c9acc)", link: "/dashboard/settings" },
+          {
+            label: "Total Students",
+            value: studentsQuery.isLoading ? null : totalStudents,
+            icon: "👨‍🎓",
+            color: "#a94442",
+            bg: "linear-gradient(135deg,#a94442,#c0504d)",
+            link: "/dashboard/students",
+          },
+          {
+            label: "Present Today",
+            value: statsLoading ? null : presentToday,
+            icon: "📋",
+            color: "#d67f00",
+            bg: "linear-gradient(135deg,#d67f00,#f89406)",
+            link: "/dashboard/attendance",
+          },
+          {
+            label: "Active Tags",
+            value: studentsQuery.isLoading ? null : totalStudents,
+            icon: "🏷️",
+            color: "#45a164",
+            bg: "linear-gradient(135deg,#45a164,#62b876)",
+            link: "/dashboard/tags",
+          },
+          {
+            label: "RFID Readers",
+            value: 1,
+            icon: "📡",
+            color: "#2779a8",
+            bg: "linear-gradient(135deg,#2779a8,#3c9acc)",
+            link: "/dashboard/settings",
+          },
         ].map((card, i) => (
           <Link
             key={i}
@@ -100,9 +116,7 @@ export default function DashboardPage() {
               flexDirection: "column",
               gap: 8,
               boxShadow: `0 4px 16px ${card.color}35`,
-              transition: "transform 0.2s, box-shadow 0.2s",
-              cursor: "pointer",
-              border: "none",
+              transition: "transform 0.2s",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -112,48 +126,38 @@ export default function DashboardPage() {
               <span style={{ fontSize: 24 }}>{card.icon}</span>
             </div>
             <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: "-1px", lineHeight: 1 }}>
-              {loading ? "—" : card.value?.toLocaleString()}
+              {card.value === null ? "—" : card.value.toLocaleString()}
             </div>
-            <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-              View → 
-            </div>
+            <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 600 }}>View →</div>
           </Link>
         ))}
       </div>
 
-      {/* ── Quick Navigation Grid ── */}
-      <div className={styles.card} style={{ marginBottom: 20 }}>
+      {/* ── Quick Navigation ── */}
+      <div className={styles.card}>
         <div className={styles.cardBody}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
             {[
-              { href: "/dashboard/attendance", icon: "📋", label: "Attendance",     desc: "Track & analyze" },
-              { href: "/dashboard/students",   icon: "👨‍🎓", label: "Students",    desc: "Manage students" },
-              { href: "/dashboard/tags",       icon: "🏷️", label: "RFID Tags",     desc: "Tag inventory" },
-              { href: "/dashboard/reports",    icon: "📊", label: "Reports",       desc: "Generate & export" },
-              { href: "/dashboard/settings",   icon: "⚙️", label: "Settings",      desc: "Configure & users" },
+              { href: "/dashboard/attendance", icon: "📋", label: "Attendance", desc: "Track & analyze" },
+              { href: "/dashboard/students",   icon: "👨‍🎓", label: "Students",  desc: "Manage students" },
+              { href: "/dashboard/monitor",    icon: "📺", label: "Monitor",    desc: "Live gate display" },
+              { href: "/dashboard/reports",    icon: "📊", label: "Reports",    desc: "Generate & export" },
+              { href: "/dashboard/settings",   icon: "⚙️", label: "Settings",   desc: "Configure & users" },
             ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "20px 12px",
-                  borderRadius: 12,
-                  background: "#f9fafb",
-                  border: "1px solid #f3f4f6",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  padding: "20px 12px", borderRadius: 12,
+                  background: "#f9fafb", border: "1px solid #f3f4f6",
                   textDecoration: "none",
-                  transition: "all 0.15s",
-                  cursor: "pointer",
                 }}
               >
                 <div style={{
                   width: 48, height: 48, borderRadius: 12,
                   background: "linear-gradient(135deg,#f3f4f6,#e5e7eb)",
-                  display: "grid", placeItems: "center",
-                  fontSize: 24, flexShrink: 0,
+                  display: "grid", placeItems: "center", fontSize: 24,
                 }}>
                   {item.icon}
                 </div>
@@ -168,83 +172,83 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Today's Attendance + Main Gate Monitor ── */}
-      <div className={styles.grid + " cols-2"}>
-        <AttendancePanel />
-        <MainGatePanel />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <AttendancePanel
+          presentCount={presentToday}
+          totalStudents={totalStudents}
+          loading={statsLoading || studentsQuery.isLoading}
+        />
+        <MainGatePanel
+          enteredToday={enteredToday}
+          exitedToday={exitedToday}
+          loading={logsLoading}
+        />
       </div>
     </main>
   );
 }
 
-/* ────────────────────────────────────────────────── */
-/* Today's Attendance Summary Panel                   */
-/* ────────────────────────────────────────────────── */
-
-function AttendancePanel() {
-  const [data, setData] = useState<{ present: number; late: number; absent: number; rate: number } | null>(null);
-
-  useEffect(() => {
-    const fetch_ = async () => {
-      try {
-        const res = await fetch("/api/dashboard/attendance", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          const buckets = json.buckets || [];
-          const present = buckets.reduce((s: number, b: any) => s + b.present, 0);
-          const late    = buckets.reduce((s: number, b: any) => s + b.late, 0);
-          const absent  = buckets.reduce((s: number, b: any) => s + b.absent, 0);
-          const total   = present + late + absent;
-          const rate    = total > 0 ? Math.round((present / total) * 100) : 0;
-          setData({ present, late, absent, rate });
-        }
-      } catch {}
-    };
-    fetch_();
-    const id = setInterval(fetch_, 30_000);
-    return () => clearInterval(id);
-  }, []);
+// ── Today's Attendance Panel (Present only) ──────────────────────────────────
+function AttendancePanel({
+  presentCount,
+  totalStudents,
+  loading,
+}: {
+  presentCount: number;
+  totalStudents: number;
+  loading: boolean;
+}) {
+  const rate = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
 
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <h2>📋 Today's Attendance</h2>
-        <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 600 }}>Live · updates every 30s</span>
+        <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
+          Live · updates every 5s
+        </span>
       </div>
       <div className={styles.cardBody}>
-        {!data ? (
+        {loading ? (
           <div style={{ color: "#9ca3af", fontSize: 14 }}>Loading attendance…</div>
         ) : (
           <>
-            <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
-              <div style={{ flex: 1, background: "#d1fae5", borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#065f46" }}>{data.present}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", opacity: 0.8 }}>Present</div>
-              </div>
-              <div style={{ flex: 1, background: "#fef3c7", borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#92400e" }}>{data.late}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", opacity: 0.8 }}>Late</div>
-              </div>
-              <div style={{ flex: 1, background: "#fee2e2", borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#991b1b" }}>{data.absent}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#991b1b", opacity: 0.8 }}>Absent</div>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{
+                background: "#d1fae5", borderRadius: 10, padding: "18px 20px",
+                display: "flex", alignItems: "center", gap: 16,
+              }}>
+                <div style={{ fontSize: 40 }}>✅</div>
+                <div>
+                  <div style={{ fontSize: 38, fontWeight: 900, color: "#065f46", lineHeight: 1 }}>
+                    {presentCount.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#065f46", opacity: 0.8, marginTop: 4 }}>
+                    Students Present Today
+                  </div>
+                </div>
               </div>
             </div>
 
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 600 }}>Overall Attendance Rate</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: data.rate >= 90 ? "#10b981" : data.rate >= 75 ? "#f59e0b" : "#ef4444" }}>
-                  {data.rate}%
+                <span style={{
+                  fontSize: 14, fontWeight: 800,
+                  color: rate >= 90 ? "#10b981" : rate >= 75 ? "#f59e0b" : "#ef4444",
+                }}>
+                  {rate}%
                 </span>
               </div>
               <div style={{ height: 8, background: "#f3f4f6", borderRadius: 999, overflow: "hidden" }}>
                 <div style={{
-                  height: "100%",
-                  width: `${data.rate}%`,
+                  height: "100%", width: `${rate}%`,
                   background: "linear-gradient(90deg,#10b981,#34d399)",
-                  borderRadius: 999,
-                  transition: "width 0.6s ease",
+                  borderRadius: 999, transition: "width 0.6s ease",
                 }} />
+              </div>
+              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>
+                {presentCount} of {totalStudents} students have scanned in today
               </div>
             </div>
           </>
@@ -254,93 +258,79 @@ function AttendancePanel() {
   );
 }
 
-/* ────────────────────────────────────────────────── */
-/* Main Gate Monitor Panel                            */
-/* ────────────────────────────────────────────────── */
-
-function MainGatePanel() {
-  const [totalIn,  setTotalIn]  = useState(10);
-  const [totalOut, setTotalOut] = useState(10);
-  const [status,   setStatus]   = useState<"online" | "offline">("online");
-
-  useEffect(() => {
-    const fetch_ = async () => {
-      try {
-        const res = await fetch("/api/dashboard/doors", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          setTotalIn(json.totalIn ?? 0);
-          setTotalOut(json.totalOut ?? 0);
-          setStatus(json.gate?.status === "online" ? "online" : "offline");
-        }
-      } catch {}
-    };
-    fetch_();
-    const id = setInterval(fetch_, 15_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const isOnline = status === "online";
-
+// ── Main Gate Monitor Panel ───────────────────────────────────────────────────
+function MainGatePanel({
+  enteredToday,
+  exitedToday,
+  loading,
+}: {
+  enteredToday: number;
+  exitedToday: number;
+  loading: boolean;
+}) {
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div>
           <h2>🚪 Main Gate Monitor</h2>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
-            Live IN / OUT tracking · updates every 15s
+            Live IN / OUT tracking · updates every 5s
           </div>
         </div>
         <div style={{
-          padding: "5px 12px",
-          borderRadius: 999,
-          background: isOnline ? "#d1fae5" : "#fee2e2",
-          border: `1px solid ${isOnline ? "#6ee7b7" : "#fca5a5"}`,
+          padding: "5px 12px", borderRadius: 999,
+          background: "#d1fae5", border: "1px solid #6ee7b7",
           display: "flex", alignItems: "center", gap: 6,
         }}>
           <div style={{
             width: 8, height: 8, borderRadius: "50%",
-            background: isOnline ? "#10b981" : "#ef4444",
-            boxShadow: isOnline ? "0 0 6px rgba(16,185,129,0.7)" : "none",
+            background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.7)",
           }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: isOnline ? "#065f46" : "#991b1b" }}>
-            {isOnline ? "ONLINE" : "OFFLINE"}
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#065f46" }}>ONLINE</span>
         </div>
       </div>
       <div className={styles.cardBody}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div style={{
-            background: "linear-gradient(135deg,#d1fae5,#a7f3d0)",
-            borderRadius: 14,
-            padding: "16px 18px",
-            border: "1px solid #6ee7b7",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ fontSize: 28 }}>🟢</div>
-              <div>
-                <div style={{ fontSize: 30, fontWeight: 900, color: "#065f46", lineHeight: 1 }}>{totalIn}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", opacity: 0.75, marginTop: 3 }}>Entered Today</div>
+        {loading ? (
+          <div style={{ color: "#9ca3af", fontSize: 14 }}>Loading gate data…</div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{
+              background: "linear-gradient(135deg,#d1fae5,#a7f3d0)",
+              borderRadius: 14, padding: "16px 18px",
+              border: "1px solid #6ee7b7",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ fontSize: 28 }}>🟢</div>
+                <div>
+                  <div style={{ fontSize: 30, fontWeight: 900, color: "#065f46", lineHeight: 1 }}>
+                    {enteredToday}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", opacity: 0.75, marginTop: 3 }}>
+                    Entered Today
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{
+              background: "linear-gradient(135deg,#fee2e2,#fecaca)",
+              borderRadius: 14, padding: "16px 18px",
+              border: "1px solid #fca5a5",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ fontSize: 28 }}>🔴</div>
+                <div>
+                  <div style={{ fontSize: 30, fontWeight: 900, color: "#991b1b", lineHeight: 1 }}>
+                    {exitedToday}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#991b1b", opacity: 0.75, marginTop: 3 }}>
+                    Exited Today
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div style={{
-            background: "linear-gradient(135deg,#fee2e2,#fecaca)",
-            borderRadius: 14,
-            padding: "16px 18px",
-            border: "1px solid #fca5a5",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ fontSize: 28 }}>🔴</div>
-              <div>
-                <div style={{ fontSize: 30, fontWeight: 900, color: "#991b1b", lineHeight: 1 }}>{totalOut}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#991b1b", opacity: 0.75, marginTop: 3 }}>Exited Today</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
-
