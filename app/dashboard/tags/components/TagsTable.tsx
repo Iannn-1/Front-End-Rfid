@@ -1,91 +1,81 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
 import styles from "../../styles.module.css";
-
-type Tag = {
-  id: string;
-  uid: string;
-  status: "unassigned" | "assigned" | "lost" | "disabled" | "retired";
-  type: "student" | "worker" | "visitor";
-  ownerId: string | null;
-  ownerType: "student" | "worker" | null;
-  issuedAt: string | null;
-  revokedAt: string | null;
-  lastSeen: string | null;
-};
-
-type ResponseList = {
-  data: Tag[];
-  page: number;
-  pageSize: number;
-  total: number;
-};
+import { useStudents } from "@/hooks/useStudents";
 
 export default function TagsTable() {
-  const [rows, setRows] = useState<Tag[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { studentsQuery } = useStudents();
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
+  // Derive tag rows from students
+  const allTags = useMemo(() => {
+    return (studentsQuery.data ?? []).map((s) => ({
+      id: String(s.id),
+      uid: s.rfid_tag_uid,
+      ownerName: s.name,
+      ownerLevel: s.student_level,
+      gradeLevel: s.grade_level,
+      status: s.status, // 'Active' | 'Inactive'
+      lastSeen: s.updatedAt ?? null,
+      photoUrl: s.profile_photo,
+    }));
+  }, [studentsQuery.data]);
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchTags = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-        if (search) params.set("search", search);
-        if (status) params.set("status", status);
-        if (type) params.set("type", type);
+  // Client-side search + filter
+  const filtered = useMemo(() => {
+    let rows = allTags;
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(
+        (t) =>
+          t.uid.toLowerCase().includes(q) ||
+          t.ownerName.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter) {
+      rows = rows.filter((t) => t.status === statusFilter);
+    }
+    return rows;
+  }, [allTags, search, statusFilter]);
 
-        const res = await fetch(`/api/tags?${params.toString()}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load tags");
-        const json: ResponseList = await res.json();
-        if (mounted) {
-          setRows(json.data);
-          setTotal(json.total);
-        }
-      } catch (e: any) {
-        if (mounted) setError(e.message || "Error");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchTags();
-  }, [page, pageSize, search, status, type]);
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const rows = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
+
+  const loading = studentsQuery.isLoading;
+  const error = studentsQuery.error?.message ?? null;
 
   return (
     <section className={styles.card}>
       <div className={styles.cardHeader}>
         <h2>Tags</h2>
         <div className={styles.controls}>
-          <input className={styles.input} placeholder="Search UID/Owner" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} />
-          <select className={styles.select} value={status} onChange={(e) => { setPage(1); setStatus(e.target.value); }}>
+          <input
+            className={styles.input}
+            placeholder="Search UID/Owner"
+            value={search}
+            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+          />
+          <select
+            className={styles.select}
+            value={statusFilter}
+            onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }}
+          >
             <option value="">All status</option>
-            <option>unassigned</option>
-            <option>assigned</option>
-            <option>lost</option>
-            <option>disabled</option>
-            <option>retired</option>
-          </select>
-          <select className={styles.select} value={type} onChange={(e) => { setPage(1); setType(e.target.value); }}>
-            <option value="">All types</option>
-            <option>student</option>
-            <option>worker</option>
-            <option>visitor</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
           </select>
         </div>
       </div>
+
       <div className={styles.cardBody}>
         {loading && <div aria-busy>Loading tags...</div>}
         {error && <div role="alert">Error: {error}</div>}
@@ -96,28 +86,56 @@ export default function TagsTable() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>UID</th>
-                    <th>Status</th>
-                    <th>Type</th>
+                    <th>Tag UID</th>
                     <th>Owner</th>
-                    <th>Issued</th>
+                    <th>Level</th>
+                    <th>Grade</th>
+                    <th>Status</th>
                     <th>Last Seen</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
+                  {rows.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: "center", color: "#6b7280", padding: 24 }}>
+                        No tags found
+                      </td>
+                    </tr>
+                  )}
                   {rows.map((t) => (
                     <tr key={t.id} className={styles.tableRow}>
-                      <td style={{ fontWeight: 600 }}>{t.uid}</td>
-                      <td>{t.status}</td>
-                      <td>{t.type}</td>
-                      <td>{t.ownerId ?? "—"}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>{t.issuedAt ? new Date(t.issuedAt).toLocaleDateString() : "—"}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>{t.lastSeen ? new Date(t.lastSeen).toLocaleString() : "—"}</td>
+                      <td style={{ fontWeight: 700, fontFamily: "monospace" }}>{t.uid}</td>
                       <td>
-                        <div className={styles.controls}>
-                          <Link className={styles.button} href={`/dashboard/tags/${t.id}`}>View</Link>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {t.photoUrl ? (
+                            <img
+                              src={t.photoUrl}
+                              alt={t.ownerName}
+                              style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#e5e7eb", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                              {t.ownerName.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                            </div>
+                          )}
+                          <span>{t.ownerName}</span>
                         </div>
+                      </td>
+                      <td>{t.ownerLevel}</td>
+                      <td>{t.gradeLevel}</td>
+                      <td>
+                        <span
+                          className={styles.badge}
+                          style={{
+                            background: t.status === "Active" ? "#d1fae5" : "#fee2e2",
+                            color: t.status === "Active" ? "#065f46" : "#991b1b",
+                          }}
+                        >
+                          {t.status}
+                        </span>
+                      </td>
+                      <td style={{ whiteSpace: "nowrap", color: "#6b7280", fontSize: 13 }}>
+                        {t.lastSeen ? new Date(t.lastSeen).toLocaleString() : "—"}
                       </td>
                     </tr>
                   ))}
@@ -125,21 +143,19 @@ export default function TagsTable() {
               </table>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}>
-                <div className={styles.controls}>
-                  <button className={styles.button} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
-                  <span style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap" }}>Page {page} / {totalPages}</span>
-                  <button className={styles.button} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</button>
-                </div>
-                <div className={styles.controls}>
-                  <label style={{ fontSize: 12, color: "#6b7280" }}>Rows:</label>
-                  <select className={styles.select} value={pageSize} onChange={(e) => { setPage(1); setPageSize(Number(e.target.value)); }}>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={30}>30</option>
-                  </select>
-                </div>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, marginTop: 12 }}>
+              <div className={styles.controls}>
+                <button className={styles.button} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
+                <span style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap" }}>Page {page} / {totalPages}</span>
+                <button className={styles.button} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</button>
+              </div>
+              <div className={styles.controls}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Rows:</label>
+                <select className={styles.select} value={pageSize} onChange={(e) => { setPage(1); setPageSize(Number(e.target.value)); }}>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                </select>
               </div>
             </div>
           </>
