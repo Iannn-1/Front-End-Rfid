@@ -231,6 +231,39 @@ export default function LoginPage() {
           <div className={s.loginFooter}>
             <span className={s.secureTag}>🔒 Secured · Role-based access</span>
           </div>
+
+          {/* Parent portal links */}
+          <div style={{
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            alignItems: "center",
+          }}>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, margin: 0 }}>
+              Are you a parent/guardian?
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <a href="/parent" style={{
+                padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                background: "rgba(248,194,46,0.15)", color: "#f8c22e",
+                border: "1px solid rgba(248,194,46,0.3)", textDecoration: "none",
+                transition: "all 0.15s",
+              }}>
+                👨‍👩‍👧 Parent Login
+              </a>
+              <a href="/parent/register" style={{
+                padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                background: "rgba(16,185,129,0.12)", color: "#34d399",
+                border: "1px solid rgba(16,185,129,0.25)", textDecoration: "none",
+                transition: "all 0.15s",
+              }}>
+                ✏️ Register
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
