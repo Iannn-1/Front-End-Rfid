@@ -337,6 +337,8 @@ export default function StudentsTable() {
 
   const handleEdit = () => {
     setIsEditing(true);
+    // Preserve existing photo when entering edit mode
+    setPhotoPreview(selectedStudent?.photoUrl || null);
   };
 
   const handleSave = () => {
@@ -363,7 +365,7 @@ export default function StudentsTable() {
       section: editForm.section ?? "A",
       course: editForm.course || undefined,
       status: (editForm.status === "active" ? "Active" : "Inactive") as "Active" | "Inactive",
-      profile_photo: photoPreview || undefined,
+      profile_photo: photoPreview || (editForm.photoUrl) || undefined,
       signature: signature || undefined,
       parent_name: editForm.parent_name ?? "",
       parent_email: editForm.parent_email ?? "",
