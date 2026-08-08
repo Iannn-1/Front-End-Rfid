@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/monitor",    label: "Monitor",    icon: "📺" },
   { href: "/dashboard/students",   label: "Students",   icon: "👨‍🎓" },
   { href: "/dashboard/tags",       label: "RFID Tags",  icon: "🏷️" },
-  { href: "/dashboard/reports",    label: "Reports",    icon: "📊" },
+  { href: "/dashboard/barcodes",   label: "Barcodes",   icon: "📊" },
+  { href: "/dashboard/reports",    label: "Reports",    icon: "📈" },
   { href: "/dashboard/settings",   label: "Settings",   icon: "⚙️" },
 ];
 
