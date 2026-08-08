@@ -2,373 +2,326 @@
 
 import { useEffect, useState, useMemo } from "react";
 import styles from "../../styles.module.css";
+import { useAttendance } from "@/hooks/useAttendance";
+import { useStudents } from "@/hooks/useStudents";
+import { AttendanceLogWithStudent } from "@/types";
 
-type AttendanceRecord = {
-  id: string;
-  studentId: string;
-  studentName: string;
-  grade: number;
-  section: string;
-  status: "present" | "absent" | "late" | "excused";
-  location: string | null;
-  checkInTime: string | null;
-  checkOutTime: string | null;
-  lastSeen: string | null;
-};
+// All grade/year levels grouped by student level
+const LEVEL_GROUPS = [
+  {
+    group: "Elementary",
+    levels: ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"],
+    color: "#065f46", bg: "#d1fae5",
+  },
+  {
+    group: "Junior High School",
+    levels: ["Grade 7", "Grade 8", "Grade 9", "Grade 10"],
+    color: "#1e40af", bg: "#dbeafe",
+  },
+  {
+    group: "Senior High School",
+    levels: ["Grade 11", "Grade 12"],
+    color: "#5b21b6", bg: "#ede9fe",
+  },
+  {
+    group: "College",
+    levels: ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year"],
+    color: "#92400e", bg: "#fef3c7",
+  },
+];
 
-type LocationStats = {
-  location: string;
-  count: number;
-  students: string[];
-};
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+}
 
 export default function AttendanceTracker() {
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
-  const [filterGrade, setFilterGrade] = useState("");
+  const { data: logs = [], isLoading } = useAttendance();
+  const { studentsQuery } = useStudents();
+  const students = studentsQuery.data ?? [];
+
+  const [filterLevel, setFilterLevel]   = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "location" | "summary">("summary");
+  const [searchQuery, setSearchQuery]   = useState("");
+  const [viewMode, setViewMode]         = useState<"summary" | "list">("summary");
 
-  // Fetch attendance data
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ date: selectedDate });
-        if (filterGrade) params.set("grade", filterGrade);
-        if (filterStatus) params.set("status", filterStatus);
+  // Build a set of student_ids that scanned IN today (first IN = present)
+  const presentStudentIds = useMemo(() => {
+    const seen = new Set<number>();
+    // logs are DESC — find first IN per student (i.e. last in array)
+    const reversed = [...logs].reverse();
+    for (const log of reversed) {
+      if (log.status === "IN") seen.add(log.student_id);
+    }
+    return seen;
+  }, [logs]);
 
-        const res = await fetch(`/api/attendance?${params.toString()}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch attendance");
-        
-        const data = await res.json();
-        setRecords(data.records || []);
-      } catch (error) {
-        console.error("Failed to fetch attendance:", error);
-        // Fallback to mock data for demo
-        const mockData: AttendanceRecord[] = generateMockAttendance();
-        setRecords(mockData);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Latest scan per student
+  const latestByStudent = useMemo(() => {
+    const map = new Map<number, AttendanceLogWithStudent>();
+    for (const log of [...logs].reverse()) {
+      map.set(log.student_id, log);
+    }
+    return map;
+  }, [logs]);
 
-    fetchAttendance();
-    const interval = setInterval(fetchAttendance, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, [selectedDate, filterGrade, filterStatus]);
+  // Build attendance records from students + logs
+  const records = useMemo(() => {
+    return students.map((s) => {
+      const latest = latestByStudent.get(s.id as number);
+      const isPresent = presentStudentIds.has(s.id as number);
+      const currentStatus = latest?.status ?? null;
+      return {
+        id: String(s.id),
+        name: s.name,
+        grade_level: s.grade_level,
+        student_level: s.student_level,
+        section: s.section,
+        course: s.course,
+        profile_photo: s.profile_photo,
+        status: isPresent ? "present" : "absent",
+        currentScan: currentStatus,
+        checkInTime: latest && latest.status === "IN" ? latest.scan_time : null,
+        lastSeen: latest ? latest.scan_time : null,
+      };
+    });
+  }, [students, latestByStudent, presentStudentIds]);
 
-  // Filter records
-  const filteredRecords = useMemo(() => {
+  // Filtered records
+  const filtered = useMemo(() => {
     return records.filter((r) => {
-      if (filterGrade && r.grade !== Number(filterGrade)) return false;
+      if (filterLevel && r.student_level !== filterLevel) return false;
       if (filterStatus && r.status !== filterStatus) return false;
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return (
-          r.studentName.toLowerCase().includes(query) ||
-          r.studentId.toLowerCase().includes(query) ||
-          r.section.toLowerCase().includes(query)
-        );
+        const q = searchQuery.toLowerCase();
+        return r.name.toLowerCase().includes(q) || r.grade_level.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [records, filterGrade, filterStatus, searchQuery]);
+  }, [records, filterLevel, filterStatus, searchQuery]);
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = filteredRecords.length;
-    const present = filteredRecords.filter((r) => r.status === "present").length;
-    const absent = filteredRecords.filter((r) => r.status === "absent").length;
-    const late = filteredRecords.filter((r) => r.status === "late").length;
-    const excused = filteredRecords.filter((r) => r.status === "excused").length;
-    const attendanceRate = total > 0 ? ((present + late) / total) * 100 : 0;
+  const total   = records.length;
+  const present = records.filter((r) => r.status === "present").length;
+  const absent  = records.filter((r) => r.status === "absent").length;
+  const rate    = total > 0 ? ((present / total) * 100).toFixed(1) : "0.0";
 
-    return { total, present, absent, late, excused, attendanceRate };
-  }, [filteredRecords]);
-
-  // Location statistics
-  const locationStats = useMemo(() => {
-    const locationMap = new Map<string, LocationStats>();
-    
-    filteredRecords
-      .filter((r) => r.status === "present" && r.location)
-      .forEach((r) => {
-        const loc = r.location!;
-        if (!locationMap.has(loc)) {
-          locationMap.set(loc, { location: loc, count: 0, students: [] });
-        }
-        const stat = locationMap.get(loc)!;
-        stat.count++;
-        stat.students.push(r.studentName);
-      });
-
-    return Array.from(locationMap.values()).sort((a, b) => b.count - a.count);
-  }, [filteredRecords]);
-
-  // Export to CSV
-  const exportToCSV = () => {
-    const headers = ["Student ID", "Name", "Grade", "Section", "Status", "Location", "Check In", "Check Out", "Last Seen"];
-    const rows = filteredRecords.map((r) => [
-      r.studentId,
-      r.studentName,
-      r.grade,
-      r.section,
-      r.status,
-      r.location || "N/A",
-      r.checkInTime || "N/A",
-      r.checkOutTime || "N/A",
-      r.lastSeen || "N/A",
+  // Export CSV
+  const exportCSV = () => {
+    const headers = ["Name", "Level", "Grade", "Section", "Status", "Last Scan", "Check In"];
+    const rows = filtered.map((r) => [
+      r.name, r.student_level, r.grade_level, r.section, r.status,
+      r.currentScan ?? "—",
+      r.checkInTime ? formatTime(r.checkInTime) : "—",
     ]);
-
     const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `attendance-${selectedDate}.csv`;
-    a.click();
+    a.href = url; a.download = `attendance-${new Date().toISOString().split("T")[0]}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return <div className={styles.card}><div className={styles.cardBody}>Loading attendance data...</div></div>;
-  }
-
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      {/* Summary Cards */}
+      {/* Summary cards */}
       <div className={`${styles.grid} ${styles.cols3}`}>
         <div className={styles.card}>
           <div className={styles.cardBody}>
-            <div className={styles.stat}>
-              <div className={styles.statLabel}>Total Students</div>
-              <div className={styles.statValue}>{stats.total}</div>
-            </div>
+            <div className={styles.statLabel}>Total Students</div>
+            <div className={styles.statValue}>{total}</div>
           </div>
         </div>
         <div className={styles.card}>
           <div className={styles.cardBody}>
-            <div className={styles.stat}>
-              <div className={styles.statLabel}>Present</div>
-              <div className={styles.statValue} style={{ color: "#10b981" }}>{stats.present}</div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                Late: {stats.late} | Excused: {stats.excused}
-              </div>
-            </div>
+            <div className={styles.statLabel}>Present Today</div>
+            <div className={styles.statValue} style={{ color: "#10b981" }}>{present}</div>
+            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>Absent: {absent}</div>
           </div>
         </div>
         <div className={styles.card}>
           <div className={styles.cardBody}>
-            <div className={styles.stat}>
-              <div className={styles.statLabel}>Attendance Rate</div>
-              <div className={styles.statValue} style={{ color: stats.attendanceRate >= 90 ? "#10b981" : "#f59e0b" }}>
-                {stats.attendanceRate.toFixed(1)}%
-              </div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                Absent: {stats.absent}
-              </div>
+            <div className={styles.statLabel}>Attendance Rate</div>
+            <div className={styles.statValue} style={{ color: Number(rate) >= 90 ? "#10b981" : "#f59e0b" }}>
+              {rate}%
             </div>
           </div>
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Main tracker */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2>Attendance Tracking</h2>
           <div className={styles.controls}>
-            <input
-              type="date"
-              className={styles.input}
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-            <button className={styles.button} onClick={exportToCSV}>
-              📥 Export CSV
-            </button>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>
+              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            </span>
+            <button className={styles.button} onClick={exportCSV}>📥 Export CSV</button>
           </div>
         </div>
+
         <div className={styles.cardBody}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+          {/* Filters */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
             <input
               className={styles.input}
-              placeholder="Search student name or ID..."
+              placeholder="Search student name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ flex: "1 1 200px" }}
+              style={{ flex: "1 1 180px" }}
             />
-            <select className={styles.select} value={filterGrade} onChange={(e) => setFilterGrade(e.target.value)}>
-              <option value="">All Grades</option>
-              {[7, 8, 9, 10, 11, 12].map((g) => (
-                <option key={g} value={g}>Grade {g}</option>
-              ))}
+            <select className={styles.select} value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)}>
+              <option value="">All Levels</option>
+              <option value="Elementary">Elementary</option>
+              <option value="Junior High School">Junior High School</option>
+              <option value="Senior High School">Senior High School</option>
+              <option value="College">College</option>
             </select>
             <select className={styles.select} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="">All Status</option>
               <option value="present">Present</option>
               <option value="absent">Absent</option>
-              <option value="late">Late</option>
-              <option value="excused">Excused</option>
             </select>
           </div>
 
-          {/* View Mode Tabs */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #e5e7eb" }}>
-            <button
-              className={styles.button}
-              onClick={() => setViewMode("summary")}
-              style={{
-                borderBottom: viewMode === "summary" ? "2px solid #8b3b3b" : "none",
-                borderRadius: 0,
-                fontWeight: viewMode === "summary" ? 700 : 400,
-              }}
-            >
-              Summary
-            </button>
-            <button
-              className={styles.button}
-              onClick={() => setViewMode("location")}
-              style={{
-                borderBottom: viewMode === "location" ? "2px solid #8b3b3b" : "none",
-                borderRadius: 0,
-                fontWeight: viewMode === "location" ? 700 : 400,
-              }}
-            >
-              By Location
-            </button>
-            <button
-              className={styles.button}
-              onClick={() => setViewMode("list")}
-              style={{
-                borderBottom: viewMode === "list" ? "2px solid #8b3b3b" : "none",
-                borderRadius: 0,
-                fontWeight: viewMode === "list" ? 700 : 400,
-              }}
-            >
-              Detailed List
-            </button>
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 4, marginBottom: 16, borderBottom: "2px solid #e5e7eb" }}>
+            {(["summary", "list"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: "8px 16px", background: "none", border: "none", cursor: "pointer",
+                  fontWeight: viewMode === mode ? 800 : 500, fontSize: 13,
+                  color: viewMode === mode ? "#8b3b3b" : "#6b7280",
+                  borderBottom: viewMode === mode ? "2px solid #8b3b3b" : "2px solid transparent",
+                  marginBottom: -2, textTransform: "capitalize",
+                }}
+              >
+                {mode === "summary" ? "Summary" : "Detailed List"}
+              </button>
+            ))}
           </div>
 
-          {/* Summary View */}
-          {viewMode === "summary" && (
-            <div className={styles.grid} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
-              {[7, 8, 9, 10, 11, 12].map((grade) => {
-                const gradeRecords = filteredRecords.filter((r) => r.grade === grade);
-                const gradePresent = gradeRecords.filter((r) => r.status === "present" || r.status === "late").length;
-                const gradeTotal = gradeRecords.length;
-                const gradeRate = gradeTotal > 0 ? (gradePresent / gradeTotal) * 100 : 0;
+          {isLoading && <div style={{ color: "#6b7280", padding: 20 }}>Loading attendance data...</div>}
+
+          {/* Summary view — grouped by level */}
+          {!isLoading && viewMode === "summary" && (
+            <div style={{ display: "grid", gap: 16 }}>
+              {LEVEL_GROUPS.map(({ group, levels, color, bg }) => {
+                const groupRecords = filtered.filter((r) => r.student_level === group);
+                if (groupRecords.length === 0) return null;
+                const gPresent = groupRecords.filter((r) => r.status === "present").length;
+                const gTotal   = groupRecords.length;
+                const gRate    = gTotal > 0 ? ((gPresent / gTotal) * 100).toFixed(0) : "0";
 
                 return (
-                  <div key={grade} className={styles.card}>
-                    <div className={styles.cardBody}>
-                      <h3 style={{ margin: "0 0 12px 0", fontSize: 16 }}>Grade {grade}</h3>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                        <span style={{ fontSize: 14, color: "#6b7280" }}>Present:</span>
-                        <span style={{ fontWeight: 700, color: "#10b981" }}>{gradePresent}/{gradeTotal}</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 14, color: "#6b7280" }}>Rate:</span>
-                        <span style={{ fontWeight: 700, color: gradeRate >= 90 ? "#10b981" : "#f59e0b" }}>
-                          {gradeRate.toFixed(1)}%
-                        </span>
-                      </div>
+                  <div key={group} style={{ border: `1px solid ${bg}`, borderRadius: 12, overflow: "hidden" }}>
+                    {/* Group header */}
+                    <div style={{ background: bg, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontWeight: 800, fontSize: 14, color }}>{group}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color }}>
+                        {gPresent}/{gTotal} · {gRate}%
+                      </span>
+                    </div>
+
+                    {/* Level rows */}
+                    <div style={{ padding: "10px 16px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
+                      {levels.map((level) => {
+                        const lvlRecords = groupRecords.filter((r) => r.grade_level === level);
+                        if (lvlRecords.length === 0) return null;
+                        const lvlPresent = lvlRecords.filter((r) => r.status === "present").length;
+                        const lvlTotal   = lvlRecords.length;
+                        const lvlRate    = lvlTotal > 0 ? ((lvlPresent / lvlTotal) * 100).toFixed(0) : "0";
+
+                        return (
+                          <div key={level} className={styles.card} style={{ margin: 0 }}>
+                            <div className={styles.cardBody} style={{ padding: "10px 12px" }}>
+                              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{level}</div>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                                <span style={{ color: "#6b7280" }}>Present:</span>
+                                <span style={{ fontWeight: 700, color: "#10b981" }}>{lvlPresent}/{lvlTotal}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}>
+                                <span style={{ color: "#6b7280" }}>Rate:</span>
+                                <span style={{ fontWeight: 700, color: Number(lvlRate) >= 90 ? "#10b981" : "#f59e0b" }}>{lvlRate}%</span>
+                              </div>
+                              {/* Mini progress bar */}
+                              <div style={{ height: 4, background: "#f3f4f6", borderRadius: 999, marginTop: 8, overflow: "hidden" }}>
+                                <div style={{ height: "100%", width: `${lvlRate}%`, background: Number(lvlRate) >= 90 ? "#10b981" : "#f59e0b", borderRadius: 999, transition: "width 0.5s" }} />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
               })}
-            </div>
-          )}
 
-          {/* Location View */}
-          {viewMode === "location" && (
-            <div className={styles.grid} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-              {locationStats.length === 0 ? (
-                <div style={{ padding: 20, textAlign: "center", color: "#6b7280" }}>
-                  No location data available
+              {filtered.length === 0 && (
+                <div style={{ textAlign: "center", color: "#9ca3af", padding: 32 }}>
+                  No attendance records found.
                 </div>
-              ) : (
-                locationStats.map((loc) => (
-                  <div key={loc.location} className={styles.card}>
-                    <div className={styles.cardBody}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                        <h3 style={{ margin: 0, fontSize: 16 }}>{loc.location}</h3>
-                        <span className={styles.badge + " " + styles.statusOnline}>{loc.count}</span>
-                      </div>
-                      <div style={{ fontSize: 13, color: "#6b7280", maxHeight: 120, overflowY: "auto" }}>
-                        {loc.students.slice(0, 10).map((name, i) => (
-                          <div key={i} style={{ padding: "4px 0" }}>• {name}</div>
-                        ))}
-                        {loc.students.length > 10 && (
-                          <div style={{ fontStyle: "italic", marginTop: 4 }}>
-                            +{loc.students.length - 10} more
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
               )}
             </div>
           )}
 
-          {/* List View */}
-          {viewMode === "list" && (
+          {/* List view */}
+          {!isLoading && viewMode === "list" && (
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
                 <thead>
                   <tr>
                     <th>Student</th>
+                    <th>Level</th>
                     <th>Grade</th>
                     <th>Section</th>
                     <th>Status</th>
-                    <th>Location</th>
+                    <th>Current Scan</th>
                     <th>Check In</th>
-                    <th>Last Seen</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRecords.map((record) => (
-                    <tr key={record.id} className={styles.tableRow}>
+                  {filtered.length === 0 && (
+                    <tr><td colSpan={7} style={{ textAlign: "center", color: "#9ca3af", padding: 24 }}>No records</td></tr>
+                  )}
+                  {filtered.map((r) => (
+                    <tr key={r.id} className={styles.tableRow}>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{record.studentName}</div>
-                        <div style={{ fontSize: 12, color: "#6b7280" }}>{record.studentId}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {r.profile_photo ? (
+                            <img src={r.profile_photo} alt={r.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                          ) : (
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#e5e7eb", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                              {r.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                            </div>
+                          )}
+                          <span style={{ fontWeight: 600, fontSize: 13 }}>{r.name}</span>
+                        </div>
                       </td>
-                      <td>{record.grade}</td>
-                      <td>{record.section}</td>
+                      <td style={{ fontSize: 12 }}>{r.student_level}</td>
+                      <td style={{ fontSize: 13 }}>{r.grade_level}</td>
+                      <td style={{ fontSize: 13 }}>{r.section}</td>
                       <td>
-                        <span
-                          className={styles.badge}
-                          style={{
-                            background:
-                              record.status === "present"
-                                ? "#d1fae5"
-                                : record.status === "late"
-                                ? "#fef3c7"
-                                : record.status === "excused"
-                                ? "#dbeafe"
-                                : "#fee2e2",
-                            color:
-                              record.status === "present"
-                                ? "#065f46"
-                                : record.status === "late"
-                                ? "#92400e"
-                                : record.status === "excused"
-                                ? "#1e40af"
-                                : "#991b1b",
-                          }}
-                        >
-                          {record.status}
+                        <span className={styles.badge} style={{
+                          background: r.status === "present" ? "#d1fae5" : "#fee2e2",
+                          color:      r.status === "present" ? "#065f46" : "#991b1b",
+                        }}>
+                          {r.status}
                         </span>
                       </td>
-                      <td>{record.location || "—"}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        {record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString() : "—"}
+                      <td>
+                        {r.currentScan ? (
+                          <span className={styles.badge} style={{
+                            background: r.currentScan === "IN" ? "#dbeafe" : "#fef3c7",
+                            color:      r.currentScan === "IN" ? "#1e40af" : "#92400e",
+                          }}>
+                            {r.currentScan}
+                          </span>
+                        ) : "—"}
                       </td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        {record.lastSeen ? new Date(record.lastSeen).toLocaleTimeString() : "—"}
+                      <td style={{ whiteSpace: "nowrap", fontSize: 12, color: "#6b7280" }}>
+                        {r.checkInTime ? formatTime(r.checkInTime) : "—"}
                       </td>
                     </tr>
                   ))}
@@ -380,43 +333,4 @@ export default function AttendanceTracker() {
       </div>
     </div>
   );
-}
-
-// Mock data generator - replace with actual API
-function generateMockAttendance(): AttendanceRecord[] {
-  const locations = ["Main Gate", "Library", "Gym", "Cafeteria", "Science Lab", "Computer Lab", "Auditorium"];
-  const sections = ["A", "B", "C"];
-  const statuses: Array<"present" | "absent" | "late" | "excused"> = ["present", "absent", "late", "excused"];
-  const names = [
-    "John Smith", "Emma Johnson", "Michael Brown", "Sophia Davis", "James Wilson",
-    "Olivia Martinez", "William Anderson", "Ava Taylor", "Robert Thomas", "Isabella Garcia",
-    "David Rodriguez", "Mia Hernandez", "Joseph Moore", "Charlotte Martin", "Daniel Lee",
-    "Amelia White", "Matthew Harris", "Harper Clark", "Christopher Lewis", "Evelyn Walker",
-  ];
-
-  const records: AttendanceRecord[] = [];
-  let idCounter = 1;
-
-  for (let grade = 7; grade <= 12; grade++) {
-    for (let i = 0; i < 20; i++) {
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const isPresent = status === "present" || status === "late";
-      const checkInTime = isPresent ? new Date(Date.now() - Math.random() * 4 * 60 * 60 * 1000) : null;
-      
-      records.push({
-        id: `att-${idCounter++}`,
-        studentId: `STU${grade}${String(i + 1).padStart(3, "0")}`,
-        studentName: names[Math.floor(Math.random() * names.length)],
-        grade,
-        section: sections[Math.floor(Math.random() * sections.length)],
-        status,
-        location: isPresent ? locations[Math.floor(Math.random() * locations.length)] : null,
-        checkInTime: checkInTime?.toISOString() || null,
-        checkOutTime: null,
-        lastSeen: isPresent ? new Date(Date.now() - Math.random() * 60 * 60 * 1000).toISOString() : null,
-      });
-    }
-  }
-
-  return records;
 }
