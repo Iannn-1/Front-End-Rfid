@@ -46,20 +46,20 @@ export default function AttendanceTracker() {
 
   // Build a set of student_ids that scanned IN today (first IN = present)
   const presentStudentIds = useMemo(() => {
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     // logs are DESC — find first IN per student (i.e. last in array)
     const reversed = [...logs].reverse();
     for (const log of reversed) {
-      if (log.status === "IN") seen.add(log.student_id);
+      if (log.status === "IN") seen.add(String(log.student_id));
     }
     return seen;
   }, [logs]);
 
   // Latest scan per student
   const latestByStudent = useMemo(() => {
-    const map = new Map<number, AttendanceLogWithStudent>();
+    const map = new Map<string, AttendanceLogWithStudent>();
     for (const log of [...logs].reverse()) {
-      map.set(log.student_id, log);
+      map.set(String(log.student_id), log);
     }
     return map;
   }, [logs]);
@@ -67,8 +67,9 @@ export default function AttendanceTracker() {
   // Build attendance records from students + logs
   const records = useMemo(() => {
     return students.map((s) => {
-      const latest = latestByStudent.get(s.id as number);
-      const isPresent = presentStudentIds.has(s.id as number);
+      const sid = String(s.id);
+      const latest = latestByStudent.get(sid);
+      const isPresent = presentStudentIds.has(sid);
       const currentStatus = latest?.status ?? null;
       return {
         id: String(s.id),
