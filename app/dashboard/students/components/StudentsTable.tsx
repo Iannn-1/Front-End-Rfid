@@ -57,8 +57,8 @@ function toLocal(s: BackendStudent): Student {
     email: s.email ?? "",
     studentType: LEVEL_MAP[s.student_level] ?? "elementary",
     grade: gradeNum,
-    section: s.section ?? null,
-    college: null,
+    section: s.student_level === "College" ? null : (s.section ?? null),
+    college: s.student_level === "College" ? (s.section ?? null) : null, // section stores college dept for college students
     course: s.course ?? null,
     status: s.status === "Active" ? "active" : "disabled",
     tagId: s.rfid_tag_uid,
@@ -362,7 +362,9 @@ export default function StudentsTable() {
       email: editForm.email || undefined,
       student_level: REVERSE_LEVEL_MAP[editForm.studentType],
       grade_level: gradeLabel,
-      section: editForm.section ?? "A",
+      section: editForm.studentType === "college"
+        ? (editForm.course || "College")
+        : (editForm.section ?? "A"),
       course: editForm.course || undefined,
       status: (editForm.status === "active" ? "Active" : "Inactive") as "Active" | "Inactive",
       profile_photo: photoPreview || (editForm.photoUrl) || undefined,
@@ -828,54 +830,77 @@ export default function StudentsTable() {
                           </select>
                         </div>
                         <div>
-                          <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>College</label>
+                          <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>College (filter)</label>
                           <select 
                             className={styles.select}
                             value={editForm.college || ""}
-                            onChange={(e) => setEditForm({ ...editForm, college: e.target.value })}
+                            onChange={(e) => setEditForm({ ...editForm, college: e.target.value, course: "" })}
                           >
-                            <option value="">Select College</option>
-                            <option value="College of Engineering">College of Engineering</option>
-                            <option value="College of Computer Studies">College of Computer Studies</option>
-                            <option value="College of Arts and Sciences">College of Arts and Sciences</option>
-                            <option value="College of Business Administration">College of Business Administration</option>
-                            <option value="College of Education">College of Education</option>
-                            <option value="College of Nursing">College of Nursing</option>
-                            <option value="College of Architecture">College of Architecture</option>
-                            <option value="College of Law">College of Law</option>
-                            <option value="College of Medicine">College of Medicine</option>
-                            <option value="College of Agriculture">College of Agriculture</option>
+                            <option value="">All Colleges</option>
+                            <option value="Computer Studies">College of Computer Studies</option>
+                            <option value="Engineering">College of Engineering</option>
+                            <option value="Business">College of Business Administration</option>
+                            <option value="Education">College of Education</option>
+                            <option value="Nursing">College of Nursing</option>
+                            <option value="Hospitality & Tourism">College of Hospitality & Tourism</option>
                           </select>
                         </div>
                       </div>
                       <div>
-                        <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Course</label>
+                        <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Course *</label>
                         <select 
                           className={styles.select}
                           value={editForm.course || ""}
                           onChange={(e) => setEditForm({ ...editForm, course: e.target.value })}
                         >
                           <option value="">Select Course</option>
-                          <optgroup label="Computer Studies">
-                            <option value="BS Information Technology (BSIT)">BS Information Technology (BSIT)</option>
-                            <option value="BS Computer Science (BSCS)">BS Computer Science (BSCS)</option>
-                            <option value="BS Information Systems (BSIS)">BS Information Systems (BSIS)</option>
-                            <option value="BS Computer Engineering (BSCpE)">BS Computer Engineering (BSCpE)</option>
-                          </optgroup>
-                          <optgroup label="Engineering">
-                            <option value="BS Civil Engineering (BSCE)">BS Civil Engineering (BSCE)</option>
-                            <option value="BS Electrical Engineering (BSEE)">BS Electrical Engineering (BSEE)</option>
-                            <option value="BS Mechanical Engineering (BSME)">BS Mechanical Engineering (BSME)</option>
-                            <option value="BS Electronics Engineering (BSECE)">BS Electronics Engineering (BSECE)</option>
-                            <option value="BS Industrial Engineering (BSIE)">BS Industrial Engineering (BSIE)</option>
-                          </optgroup>
-                          <optgroup label="Business">
-                            <option value="BS Business Administration (BSBA)">BS Business Administration (BSBA)</option>
-                            <option value="BS Accountancy (BSA)">BS Accountancy (BSA)</option>
-                            <option value="BS Management Accounting (BSMA)">BS Management Accounting (BSMA)</option>
-                            <option value="BS Entrepreneurship">BS Entrepreneurship</option>
-                            <option value="BS Marketing Management">BS Marketing Management</option>
-                          </optgroup>
+                          {/* Show all courses if no college filter, otherwise filter by selected college */}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Computer Studies") && (
+                            <optgroup label="Computer Studies">
+                              <option value="BS Information Technology (BSIT)">BS Information Technology (BSIT)</option>
+                              <option value="BS Computer Science (BSCS)">BS Computer Science (BSCS)</option>
+                              <option value="BS Information Systems (BSIS)">BS Information Systems (BSIS)</option>
+                              <option value="BS Computer Engineering (BSCpE)">BS Computer Engineering (BSCpE)</option>
+                            </optgroup>
+                          )}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Engineering") && (
+                            <optgroup label="Engineering">
+                              <option value="BS Civil Engineering (BSCE)">BS Civil Engineering (BSCE)</option>
+                              <option value="BS Electrical Engineering (BSEE)">BS Electrical Engineering (BSEE)</option>
+                              <option value="BS Mechanical Engineering (BSME)">BS Mechanical Engineering (BSME)</option>
+                              <option value="BS Electronics Engineering (BSECE)">BS Electronics Engineering (BSECE)</option>
+                              <option value="BS Industrial Engineering (BSIE)">BS Industrial Engineering (BSIE)</option>
+                            </optgroup>
+                          )}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Business") && (
+                            <optgroup label="Business">
+                              <option value="BS Business Administration (BSBA)">BS Business Administration (BSBA)</option>
+                              <option value="BS Accountancy (BSA)">BS Accountancy (BSA)</option>
+                              <option value="BS Management Accounting (BSMA)">BS Management Accounting (BSMA)</option>
+                              <option value="BS Entrepreneurship">BS Entrepreneurship</option>
+                              <option value="BS Marketing Management">BS Marketing Management</option>
+                            </optgroup>
+                          )}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Education") && (
+                            <optgroup label="Education">
+                              <option value="Bachelor of Elementary Education (BEEd)">Bachelor of Elementary Education (BEEd)</option>
+                              <option value="Bachelor of Secondary Education (BSEd)">Bachelor of Secondary Education (BSEd)</option>
+                              <option value="Bachelor of Physical Education (BPEd)">Bachelor of Physical Education (BPEd)</option>
+                              <option value="Bachelor of Special Needs Education (BSNEd)">Bachelor of Special Needs Education (BSNEd)</option>
+                            </optgroup>
+                          )}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Nursing") && (
+                            <optgroup label="Nursing">
+                              <option value="BS Nursing (BSN)">BS Nursing (BSN)</option>
+                            </optgroup>
+                          )}
+                          {(editForm.college === "" || !editForm.college || editForm.college === "Hospitality & Tourism") && (
+                            <optgroup label="Hospitality & Tourism">
+                              <option value="BS Hospitality Management (BSHM)">BS Hospitality Management (BSHM)</option>
+                              <option value="BS Tourism Management (BSTM)">BS Tourism Management (BSTM)</option>
+                              <option value="BS Hotel and Restaurant Management">BS Hotel and Restaurant Management</option>
+                            </optgroup>
+                          )}
                           <optgroup label="Education">
                             <option value="Bachelor of Elementary Education (BEEd)">Bachelor of Elementary Education (BEEd)</option>
                             <option value="Bachelor of Secondary Education (BSEd)">Bachelor of Secondary Education (BSEd)</option>

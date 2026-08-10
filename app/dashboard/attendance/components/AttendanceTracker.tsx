@@ -302,7 +302,7 @@ export default function AttendanceTracker() {
                       </td>
                       <td style={{ fontSize: 12 }}>{r.student_level}</td>
                       <td style={{ fontSize: 13 }}>{r.grade_level}</td>
-                      <td style={{ fontSize: 13 }}>{r.section}</td>
+                      <td style={{ fontSize: 13 }}>{r.student_level === "College" ? (r.course || "—") : r.section}</td>
                       <td>
                         <span className={styles.badge} style={{
                           background: r.status === "present" ? "#d1fae5" : "#fee2e2",
