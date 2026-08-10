@@ -239,8 +239,29 @@ export default function MonitorPage() {
     }
   };
 
+  // Hide dashboard layout when in fullscreen mode
+  useEffect(() => {
+    const sidebar = document.querySelector('.sidebar') as HTMLElement;
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    
+    if (isFullscreen) {
+      if (sidebar) sidebar.style.display = 'none';
+      if (mainContent) {
+        mainContent.style.marginLeft = '0';
+      }
+    } else {
+      if (sidebar) sidebar.style.display = 'flex';
+      if (mainContent) {
+        mainContent.style.marginLeft = '';
+      }
+    }
+  }, [isFullscreen]);
+
   return (
     <div style={{
+      position: isFullscreen ? 'fixed' : 'relative',
+      inset: isFullscreen ? 0 : 'auto',
+      zIndex: isFullscreen ? 9999 : 'auto',
       minHeight: '100vh',
       background: 'radial-gradient(circle at 50% 20%, #1e3a8a 0%, #0f172a 70%, #020617 100%)',
       display: 'flex',
