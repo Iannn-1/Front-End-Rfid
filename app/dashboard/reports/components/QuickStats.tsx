@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "../../styles.module.css";
+import api from "@/lib/api";
 
 type Stats = {
   totalStudents: number;
@@ -29,9 +30,8 @@ export default function QuickStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/reports/stats", { cache: "no-store" })
-      .then(r => r.json())
-      .then(d => setStats(d.stats))
+    api.get("/reports/stats")
+      .then(r => setStats(r.data?.data?.stats ?? r.data?.stats))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
