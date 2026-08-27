@@ -101,7 +101,7 @@ export default function LoginPage() {
       <nav className={s.nav}>
         <div className={s.navBrand}>
           <div className={s.navLogoWrap}>
-            <img src="/bc-logo.png" alt="School logo" className={s.navLogo} />
+            <img src="/bc-logo.png?v=2" alt="School logo" className={s.navLogo} />
           </div>
           <div>
             <div className={s.navTitle}>Benedicto College</div>
@@ -321,7 +321,7 @@ export default function LoginPage() {
       <footer className={s.footer}>
         <div className={s.footerInner}>
           <div className={s.footerBrand}>
-            <img src="/bc-logo.png" alt="Logo" className={s.footerLogo} />
+            <img src="/bc-logo.png?v=2" alt="Logo" className={s.footerLogo} />
             <div>
               <div className={s.footerName}>Benedicto College</div>
               <div className={s.footerTagline}>RFID Campus Management System</div>

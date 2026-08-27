@@ -264,7 +264,7 @@ export default function MonitorPage() {
         {/* Logo & School Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <img
-            src="/bc-logo.png"
+            src="/bc-logo.png?v=2"
             alt="Benedicto College Logo"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';

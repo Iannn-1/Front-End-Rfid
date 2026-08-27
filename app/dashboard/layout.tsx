@@ -131,7 +131,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             border: "02px solid #f8c22e",
           }}>
             <img 
-              src="/bc-logo.png" 
+              src="/bc-logo.png?v=2" 
               alt="BC Logo" 
               style={{ 
                 width: "100%", 
