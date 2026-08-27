@@ -236,29 +236,29 @@ export default function LoginPage() {
           <div style={{
             marginTop: 16,
             paddingTop: 16,
-            borderTop: "1px solid rgba(255,255,255,0.08)",
+            borderTop: "1px solid rgba(107, 114, 128, 0.2)",
             display: "flex",
             flexDirection: "column",
             gap: 8,
             alignItems: "center",
           }}>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, margin: 0 }}>
+            <p style={{ color: "#6b7280", fontSize: 12, margin: 0, fontWeight: 600 }}>
               Are you a parent/guardian?
             </p>
             <div style={{ display: "flex", gap: 10 }}>
               <a href="/parent" style={{
                 padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                background: "rgba(248,194,46,0.15)", color: "#f8c22e",
-                border: "1px solid rgba(248,194,46,0.3)", textDecoration: "none",
-                transition: "all 0.15s",
+                background: "linear-gradient(135deg, #fbbf24, #f59e0b)", color: "white",
+                border: "1px solid rgba(251, 191, 36, 0.5)", textDecoration: "none",
+                transition: "all 0.15s", boxShadow: "0 2px 8px rgba(251, 191, 36, 0.3)",
               }}>
                 👨‍👩‍👧 Parent Login
               </a>
               <a href="/parent/register" style={{
                 padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                background: "rgba(16,185,129,0.12)", color: "#34d399",
-                border: "1px solid rgba(16,185,129,0.25)", textDecoration: "none",
-                transition: "all 0.15s",
+                background: "linear-gradient(135deg, #10b981, #059669)", color: "white",
+                border: "1px solid rgba(16, 185, 129, 0.5)", textDecoration: "none",
+                transition: "all 0.15s", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
               }}>
                 ✏️ Register
               </a>

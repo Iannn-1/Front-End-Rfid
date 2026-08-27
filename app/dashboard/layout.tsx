@@ -83,32 +83,86 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className="sidebar"
         style={{
-          width: 220,
-          background: "linear-gradient(180deg,#1a0a0a 0%,#2d1010 40%,#1e0b0b 100%)",
+          width: 240,
+          background: "linear-gradient(180deg, #1e3a8a 0%, #831843 50%, #1e3a8a 100%)",
           display: "flex", flexDirection: "column", flexShrink: 0,
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 100,
           boxShadow: "4px 0 20px rgba(0,0,0,0.4)",
           transition: "transform 0.25s ease",
         }}
       >
-        {/* Logo */}
-        <div style={{ padding: "22px 20px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: "linear-gradient(135deg,#c0504d,#8b1a1a)",
-              display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0,
-              boxShadow: "0 4px 12px rgba(192,80,77,0.4)",
-            }}>📡</div>
-            <div>
-              <div style={{ fontWeight: 900, fontSize: 15, color: "#fff", lineHeight: 1.2 }}>School RFID</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>Admin Portal</div>
+        {/* Logo Section - Larger BC Logo */}
+        <div style={{ padding: "32px 20px 24px", borderBottom: "1px solid rgba(255,255,255,0.12)", textAlign: "center" }}>
+          {/* Close button (hamburger) - visible on mobile */}
+          <button
+            className="sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 8,
+              width: 32,
+              height: 32,
+              display: "none",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "white",
+              fontSize: 18,
+            }}
+          >
+            ✕
+          </button>
+
+          {/* Large BC Logo Circle */}
+          <div style={{
+            width: 100,
+            height: 100,
+            borderRadius: "50%",
+            background: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            overflow: "hidden",
+            border: "4px solid rgba(248, 194, 46, 0.3)",
+          }}>
+            <img 
+              src="/bc-logo.png" 
+              alt="BC Logo" 
+              style={{ width: "85%", height: "85%", objectFit: "contain" }}
+            />
+          </div>
+          
+          {/* School Name */}
+          <div>
+            <div style={{ 
+              fontWeight: 900, 
+              fontSize: 16, 
+              color: "white", 
+              lineHeight: 1.2,
+              marginBottom: 4,
+            }}>
+              Benedicto College
+            </div>
+            <div style={{ 
+              fontSize: 11, 
+              color: "rgba(255,255,255,0.7)", 
+              fontWeight: 600, 
+              textTransform: "uppercase", 
+              letterSpacing: "0.8px",
+            }}>
+              School RFID System
             </div>
           </div>
         </div>
 
         {/* Nav links */}
-        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
+        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", overflowX: "hidden" }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", padding: "0 10px", marginBottom: 8 }}>
             Navigation
           </div>
@@ -122,11 +176,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "10px 12px", borderRadius: 10, textDecoration: "none",
-                  background: active ? "linear-gradient(135deg,#8b3b3b,#a04040)" : "transparent",
-                  color: active ? "#fff" : "rgba(255,255,255,0.65)",
+                  background: active ? "rgba(248, 194, 46, 0.15)" : "transparent",
+                  color: active ? "#f8c22e" : "rgba(255,255,255,0.7)",
                   fontWeight: active ? 700 : 500, fontSize: 14,
                   transition: "all 0.15s", position: "relative",
-                  boxShadow: active ? "0 4px 12px rgba(139,59,59,0.4)" : "none",
+                  boxShadow: active ? "0 4px 12px rgba(248, 194, 46, 0.2)" : "none",
+                  border: active ? "1px solid rgba(248, 194, 46, 0.3)" : "1px solid transparent",
                 }}
               >
                 <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
@@ -134,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {active && (
                   <div style={{
                     position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-                    width: 3, height: 20, background: "#f8c22e", borderRadius: "3px 0 0 3px",
+                    width: 4, height: 24, background: "#f8c22e", borderRadius: "4px 0 0 4px",
                   }} />
                 )}
               </Link>
@@ -272,15 +327,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Responsive styles */}
       <style>{`
+        /* Hide scrollbar for sidebar nav */
+        .sidebar nav::-webkit-scrollbar {
+          width: 0px;
+          display: none;
+        }
+        .sidebar nav {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+
         @media (min-width: 769px) {
           .sidebar { transform: translateX(0) !important; }
-          .main-content { margin-left: 220px; }
+          .main-content { margin-left: 240px; }
           .hamburger { display: none !important; }
+          .sidebar-close { display: none !important; }
         }
         @media (max-width: 768px) {
           .sidebar { transform: ${sidebarOpen ? "translateX(0)" : "translateX(-100%)"}; }
           .main-content { margin-left: 0; }
           .hamburger { display: flex !important; }
+          .sidebar-close { display: flex !important; }
           .header-search { display: none; }
           .user-name { display: none; }
         }

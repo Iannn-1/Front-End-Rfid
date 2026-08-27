@@ -103,7 +103,7 @@ export default function TagsTable() {
                     </tr>
                   )}
                   {rows.map((t) => (
-                    <tr key={t.id} className={styles.tableRow}>
+                    <tr key={t.id} className={styles.tableRow} style={{ cursor: 'default' }}>
                       <td style={{ fontWeight: 700, fontFamily: "monospace" }}>{t.uid}</td>
                       <td>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

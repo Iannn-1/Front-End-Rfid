@@ -11,6 +11,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "School RFID System",
   description: "RFID-powered attendance and campus monitoring",
+  icons: {
+    icon: "/bc-logo.png",
+    shortcut: "/bc-logo.png",
+    apple: "/bc-logo.png",
+  },
 };
 
 export default function RootLayout({
