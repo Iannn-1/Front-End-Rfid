@@ -536,17 +536,88 @@ export default function DashboardPage() {
                     border: "1px solid #f3f4f6",
                   }}
                 >
+                  {/* Student Photo */}
                   <div style={{
                     width: 36,
                     height: 36,
                     borderRadius: "50%",
-                    background: log.status === 'IN' ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #ef4444, #dc2626)",
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: 16,
+                    border: log.status === 'IN' ? "2px solid #10b981" : "2px solid #ef4444",
+                    overflow: "hidden",
                     flexShrink: 0,
+                    background: "#f3f4f6",
+                    position: "relative",
                   }}>
-                    {log.status === 'IN' ? '✓' : '←'}
+                    {log.Student?.profile_photo ? (
+                      <img 
+                        src={log.Student.profile_photo} 
+                        alt={log.Student.name || 'Student'}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div style="
+                                width: 100%; 
+                                height: 100%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center;
+                                background: ${log.status === 'IN' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+                                color: white;
+                                font-weight: 700;
+                                font-size: 12px;
+                              ">
+                                ${(log.Student?.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                              </div>
+                              <div style="
+                                position: absolute;
+                                bottom: -1px;
+                                right: -1px;
+                                width: 12px;
+                                height: 12px;
+                                border-radius: 50%;
+                                background: ${log.status === 'IN' ? '#10b981' : '#ef4444'};
+                                border: 2px solid white;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                              "></div>
+                            `;
+                          }
+                        }}
+                      />
+                    ) : (
+                      // Fallback to initials if no photo
+                      <div style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: log.status === 'IN' ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #ef4444, #dc2626)",
+                        color: "white",
+                        fontWeight: 700,
+                        fontSize: 12,
+                      }}>
+                        {(log.Student?.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    {/* Status indicator dot */}
+                    <div style={{
+                      position: "absolute",
+                      bottom: -1,
+                      right: -1,
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      background: log.status === 'IN' ? "#10b981" : "#ef4444",
+                      border: "2px solid white",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                    }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
