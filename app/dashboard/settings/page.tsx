@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AdminProfile from "./components/AdminProfile";
 import UserManagement from "./components/UserManagement";
 import RFIDSettings from "./components/RFIDSettings";
@@ -8,8 +8,18 @@ import SystemSettings from "./components/SystemSettings";
 import NotificationSettings from "./components/NotificationSettings";
 import SecuritySettings from "./components/SecuritySettings";
 import styles from "../styles.module.css";
+import { getUser } from "@/lib/auth";
 
 export default function SettingsPage() {
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const user = getUser();
+    setUserRole(user?.role || null);
+  }, []);
+
+  const isSuperAdmin = userRole === 'superadmin';
+
   return (
     <main className={styles.dashboard}>
       <div style={{ marginBottom: 8 }}>
@@ -23,8 +33,8 @@ export default function SettingsPage() {
         {/* My Profile */}
         <AdminProfile />
 
-        {/* Admin Accounts */}
-        <UserManagement />
+        {/* Admin Accounts - Only visible to superadmins */}
+        {isSuperAdmin && <UserManagement />}
 
         {/* RFID + System config */}
         <div className={`${styles.grid} ${styles.cols2}`}>
