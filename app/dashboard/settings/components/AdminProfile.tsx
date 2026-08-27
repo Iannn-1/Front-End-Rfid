@@ -32,7 +32,7 @@ export default function AdminProfile() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   useEffect(() => {
-    fetch(`/api/users/${CURRENT_ID}`, { cache: "no-store" })
+    fetch(`/api/v1/users/${CURRENT_ID}`, { cache: "no-store" })
       .then(r => r.json())
       .then(d => {
         if (d.user) {
@@ -58,7 +58,7 @@ export default function AdminProfile() {
       const body: Record<string, string> = { name: form.name, email: form.email };
       if (form.newPw) body.password = form.newPw;
 
-      const res  = await fetch(`/api/users/${CURRENT_ID}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const res  = await fetch(`/api/v1/users/${CURRENT_ID}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
 
       if (!res.ok) { setError(data.error || "Failed to save."); return; }

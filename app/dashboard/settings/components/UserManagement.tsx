@@ -35,7 +35,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users", { cache: "no-store" });
+      const res = await fetch("/api/v1/users", { cache: "no-store" });
       if (res.ok) { const d = await res.json(); setUsers(d.data || []); }
     } finally { setLoading(false); }
   };
@@ -55,7 +55,7 @@ export default function UserManagement() {
 
     setSaving(true);
     try {
-      const url    = modal === "edit" && editTarget ? `/api/users/${editTarget.id}` : "/api/users";
+      const url    = modal === "edit" && editTarget ? `/api/v1/users/${editTarget.id}` : "/api/v1/users";
       const method = modal === "edit" ? "PATCH" : "POST";
       const body   = modal === "edit" && !form.password
         ? { name: form.name, email: form.email, role: form.role }
@@ -75,7 +75,7 @@ export default function UserManagement() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
       if (res.ok) { await fetchUsers(); showToast("🗑️ Account deleted."); }
     } finally { setDeleteId(null); }
   };
