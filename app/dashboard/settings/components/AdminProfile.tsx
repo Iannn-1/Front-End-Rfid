@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../../styles.module.css";
+import { getToken } from "@/lib/auth";
 
 type AdminUser = {
   id: string;
@@ -32,7 +33,14 @@ export default function AdminProfile() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   useEffect(() => {
-    fetch(`/api/v1/users/${CURRENT_ID}`, { cache: "no-store" })
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+    const token = getToken();
+    fetch(`${apiBase}/users/${CURRENT_ID}`, { 
+      cache: "no-store",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
       .then(r => r.json())
       .then(d => {
         if (d.user) {
@@ -58,7 +66,16 @@ export default function AdminProfile() {
       const body: Record<string, string> = { name: form.name, email: form.email };
       if (form.newPw) body.password = form.newPw;
 
-      const res  = await fetch(`/api/v1/users/${CURRENT_ID}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+      const token = getToken();
+      const res  = await fetch(`${apiBase}/users/${CURRENT_ID}`, { 
+        method: "PATCH", 
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`,
+        }, 
+        body: JSON.stringify(body) 
+      });
       const data = await res.json();
 
       if (!res.ok) { setError(data.error || "Failed to save."); return; }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../../styles.module.css";
+import { getToken } from "@/lib/auth";
 
 type AdminUser = {
   id: string;
@@ -35,7 +36,14 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/users", { cache: "no-store" });
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+      const token = getToken();
+      const res = await fetch(`${apiBase}/users`, { 
+        cache: "no-store",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (res.ok) { const d = await res.json(); setUsers(d.data || []); }
     } finally { setLoading(false); }
   };
@@ -55,13 +63,22 @@ export default function UserManagement() {
 
     setSaving(true);
     try {
-      const url    = modal === "edit" && editTarget ? `/api/v1/users/${editTarget.id}` : "/api/v1/users";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+      const token = getToken();
+      const url    = modal === "edit" && editTarget ? `${apiBase}/users/${editTarget.id}` : `${apiBase}/users`;
       const method = modal === "edit" ? "PATCH" : "POST";
       const body   = modal === "edit" && !form.password
         ? { name: form.name, email: form.email, role: form.role }
         : form;
 
-      const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const res  = await fetch(url, { 
+        method, 
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`,
+        }, 
+        body: JSON.stringify(body) 
+      });
       const data = await res.json();
 
       if (!res.ok) { setError(data.error || "Failed to save."); return; }
@@ -75,7 +92,14 @@ export default function UserManagement() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+      const token = getToken();
+      const res = await fetch(`${apiBase}/users/${id}`, { 
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (res.ok) { await fetchUsers(); showToast("🗑️ Account deleted."); }
     } finally { setDeleteId(null); }
   };
