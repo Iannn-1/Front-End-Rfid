@@ -122,19 +122,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             width: 100,
             height: 100,
             borderRadius: "50%",
-            background: "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             margin: "0 auto 16px",
             boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
             overflow: "hidden",
-            border: "4px solid rgba(248, 194, 46, 0.3)",
+            border: "02px solid #f8c22e",
           }}>
             <img 
               src="/bc-logo.png" 
               alt="BC Logo" 
-              style={{ width: "85%", height: "85%", objectFit: "contain" }}
+              style={{ 
+                width: "100%", 
+                height: "100%", 
+                objectFit: "cover",
+                objectPosition: "center center",
+              }}
             />
           </div>
           
