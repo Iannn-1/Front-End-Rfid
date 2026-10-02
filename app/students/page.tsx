@@ -171,7 +171,7 @@ export default function StudentsPage() {
                   <TableBody>
                     {students.map((student) => (
                       <TableRow key={student.id}>
-                        <TableCell>{student.name}</TableCell>
+                        <TableCell>{student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</TableCell>
                         <TableCell>{student.grade_level}</TableCell>
                         <TableCell>{student.section}</TableCell>
                         <TableCell className="font-mono text-sm">

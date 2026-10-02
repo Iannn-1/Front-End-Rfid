@@ -17,7 +17,7 @@ export default function TagsTable() {
     return (studentsQuery.data ?? []).map((s) => ({
       id: String(s.id),
       uid: s.rfid_tag_uid,
-      ownerName: s.name,
+      ownerName: s.name || `${s.last_name}, ${s.first_name}${s.middle_name ? ' ' + s.middle_name : ''}`,
       ownerLevel: s.student_level,
       gradeLevel: s.grade_level,
       status: s.status, // 'Active' | 'Inactive'

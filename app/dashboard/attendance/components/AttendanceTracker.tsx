@@ -73,7 +73,7 @@ export default function AttendanceTracker() {
       const currentStatus = latest?.status ?? null;
       return {
         id: String(s.id),
-        name: s.name,
+        name: s.name || `${s.last_name}, ${s.first_name}${s.middle_name ? ' ' + s.middle_name : ''}`,
         grade_level: s.grade_level,
         student_level: s.student_level,
         section: s.section,

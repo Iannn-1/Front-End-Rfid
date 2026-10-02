@@ -550,7 +550,7 @@ export default function DashboardPage() {
                     {log.Student?.profile_photo ? (
                       <img 
                         src={log.Student.profile_photo} 
-                        alt={log.Student.name || 'Student'}
+                        alt={log.Student?.name || (log.Student ? `${log.Student.last_name}, ${log.Student.first_name}` : 'Student')}
                         style={{
                           width: "100%",
                           height: "100%",

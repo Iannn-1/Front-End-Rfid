@@ -14,6 +14,7 @@ export interface Student {
   first_name: string;
   last_name: string;
   middle_name?: string;
+  name?: string; // Backward compatibility during migration
   email?: string;
   student_level: StudentLevel;
   grade_level: string;

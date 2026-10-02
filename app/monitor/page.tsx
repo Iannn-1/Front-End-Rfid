@@ -2,7 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAttendance } from '@/hooks/useAttendance';
-import { AttendanceLogWithStudent } from '@/types';
+import { AttendanceLogWithStudent, Student } from '@/types';
+
+// Helper function for backward compatible name display
+function getStudentName(student: Student | null | undefined): string {
+  if (!student) return '';
+  return student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`;
+}
+
+function getStudentInitials(student: Student | null | undefined): string {
+  if (!student) return '?';
+  if (student.name) {
+    return student.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  }
+  return `${student.first_name[0] || ''}${student.last_name[0] || ''}`.toUpperCase();
+}
 
 // ── Live Clock Hook ──────────────────────────────────────────────────────────
 function useClock() {
@@ -95,7 +109,7 @@ function ScanCard({ log }: { log?: AttendanceLogWithStudent }) {
           {photo ? (
             <img
               src={photo}
-              alt={student.name}
+              alt={getStudentName(student)}
               style={{
                 width: 52,
                 height: 52,
@@ -119,7 +133,7 @@ function ScanCard({ log }: { log?: AttendanceLogWithStudent }) {
               color: 'white',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}>
-              {student.name ? student.name.charAt(0).toUpperCase() : '?'}
+              {getStudentInitials(student)}
             </div>
           )}
 
@@ -135,7 +149,7 @@ function ScanCard({ log }: { log?: AttendanceLogWithStudent }) {
             whiteSpace: 'nowrap',
             width: '100%',
           }}>
-            {student.name}
+            {getStudentName(student)}
           </div>
 
           <div style={{
@@ -429,7 +443,7 @@ export default function MonitorPage() {
                   color: '#f8c22e',
                   textShadow: '0 4px 12px rgba(0,0,0,0.5)',
                 }}>
-                  {student.name ? student.name.charAt(0).toUpperCase() : '?'}
+                  {getStudentInitials(student)}
                 </div>
               ) : (
                 <div style={{

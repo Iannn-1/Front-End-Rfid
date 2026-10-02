@@ -79,13 +79,15 @@ export default function LiveFeed() {
                 display: "grid", placeItems: "center", fontSize: 10, fontWeight: 800,
                 color: log.status === "IN" ? "#065f46" : "#991b1b",
               }}>
-                {log.Student?.name?.split(" ").map((p: string) => p[0]).join("").slice(0, 2) ?? "?"}
+                {log.Student?.name ? log.Student.name.split(" ").map((p: string) => p[0]).join("").slice(0, 2) 
+                  : log.Student ? `${log.Student.first_name[0] || ''}${log.Student.last_name[0] || ''}`
+                  : "?"}
               </div>
 
               {/* Name + info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {log.Student?.name ?? "Unknown"}
+                  {log.Student?.name || (log.Student ? `${log.Student.last_name}, ${log.Student.first_name}` : "Unknown")}
                 </div>
                 <div style={{ fontSize: 11, color: "#9ca3af" }}>
                   {log.Student?.grade_level} · {log.Student?.section}
