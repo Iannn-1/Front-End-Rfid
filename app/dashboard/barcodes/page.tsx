@@ -10,9 +10,12 @@ export default function BarcodesPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const students = (studentsQuery.data ?? []).filter((s) =>
-    search ? s.name.toLowerCase().includes(search.toLowerCase()) || s.rfid_tag_uid.includes(search) : true
-  );
+  const students = (studentsQuery.data ?? []).filter((s) => {
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    const fullName = s.name || `${s.last_name}, ${s.first_name}${s.middle_name ? ' ' + s.middle_name : ''}`;
+    return fullName.toLowerCase().includes(searchLower) || s.rfid_tag_uid.includes(search);
+  });
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
