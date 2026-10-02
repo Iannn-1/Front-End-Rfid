@@ -150,7 +150,7 @@ export default function ParentDashboardPage() {
                 Hello, {parent?.name?.split(" ")[0]}! 👋
               </h2>
               <p style={{ color: "#475569", fontSize: 14, margin: 0 }}>
-                Your child: <strong>{student.name}</strong>
+                Your child: <strong>{student.last_name}, {student.first_name} {student.middle_name || ''}</strong>
               </p>
             </div>
 
@@ -160,18 +160,20 @@ export default function ParentDashboardPage() {
               boxShadow: "0 4px 20px rgba(0,0,0,0.08)", display: "flex", gap: 16, alignItems: "center",
             }}>
               {student.profile_photo ? (
-                <img src={student.profile_photo} alt={student.name}
+                <img src={student.profile_photo} alt={`${student.first_name} ${student.last_name}`}
                   style={{ width: 70, height: 70, borderRadius: "50%", objectFit: "cover", border: "3px solid #e5e7eb", flexShrink: 0 }} />
               ) : (
                 <div style={{
                   width: 70, height: 70, borderRadius: "50%", background: "#e5e7eb",
                   display: "grid", placeItems: "center", fontSize: 24, fontWeight: 800, flexShrink: 0,
                 }}>
-                  {student.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                  {student.first_name[0]}{student.last_name[0]}
                 </div>
               )}
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, color: "#1f2937", marginBottom: 4 }}>{student.name}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, color: "#1f2937", marginBottom: 4 }}>
+                  {student.last_name}, {student.first_name} {student.middle_name || ''}
+                </div>
                 <div style={{ fontSize: 13, color: "#6b7280" }}>{student.student_level} · {student.grade_level} · {student.section}</div>
                 {student.course && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{student.course}</div>}
               </div>

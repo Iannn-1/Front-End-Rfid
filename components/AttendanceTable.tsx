@@ -48,7 +48,7 @@ export default function AttendanceTable({ logs }: AttendanceTableProps) {
       <TableBody>
         {logs.map((log) => (
           <TableRow key={log.id}>
-            <TableCell>{log.Student.name}</TableCell>
+            <TableCell>{log.Student.last_name}, {log.Student.first_name} {log.Student.middle_name || ''}</TableCell>
             <TableCell>{log.Student.grade_level}</TableCell>
             <TableCell>{log.Student.section}</TableCell>
             <TableCell>

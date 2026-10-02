@@ -11,7 +11,9 @@ export type StudentStatus = 'Active' | 'Inactive';
 export interface Student {
   id: string;
   rfid_tag_uid: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
   email?: string;
   student_level: StudentLevel;
   grade_level: string;
@@ -73,7 +75,9 @@ export interface LoginResponse {
 
 export interface StudentFormInput {
   rfid_tag_uid: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
   email?: string;
   student_level: StudentLevel;
   grade_level: string;

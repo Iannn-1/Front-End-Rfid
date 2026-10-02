@@ -27,7 +27,9 @@ const REVERSE_LEVEL_MAP: Record<StudentType, StudentLevel> = {
 
 type Student = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
   email: string;
   studentType: StudentType;
   grade?: number | null;
@@ -53,7 +55,9 @@ function toLocal(s: BackendStudent): Student {
 
   return {
     id: String(s.id),
-    name: s.name,
+    firstName: s.first_name,
+    lastName: s.last_name,
+    middleName: s.middle_name,
     email: s.email ?? "",
     studentType: LEVEL_MAP[s.student_level] ?? "elementary",
     grade: gradeNum,
@@ -241,7 +245,9 @@ export default function StudentsTable() {
       const q = search.toLowerCase();
       rows = rows.filter(
         (s) =>
-          s.name.toLowerCase().includes(q) ||
+          s.firstName.toLowerCase().includes(q) ||
+          s.lastName.toLowerCase().includes(q) ||
+          (s.middleName ?? "").toLowerCase().includes(q) ||
           s.email.toLowerCase().includes(q) ||
           (s.tagId ?? "").toLowerCase().includes(q)
       );
@@ -282,7 +288,9 @@ export default function StudentsTable() {
     
     const newStudent: Student = {
       id: `temp-${Date.now()}`,
-      name: "",
+      firstName: "",
+      lastName: "",
+      middleName: "",
       email: "",
       studentType: "elementary",
       grade: 1,
@@ -358,7 +366,9 @@ export default function StudentsTable() {
 
     const payload = {
       rfid_tag_uid: editForm.tagId ?? "",
-      name: editForm.name,
+      first_name: editForm.firstName,
+      last_name: editForm.lastName,
+      middle_name: editForm.middleName || undefined,
       email: editForm.email || undefined,
       student_level: REVERSE_LEVEL_MAP[editForm.studentType],
       grade_level: gradeLabel,
@@ -522,7 +532,7 @@ export default function StudentsTable() {
                             {s.photoUrl ? (
                               <img 
                                 src={s.photoUrl} 
-                                alt={s.name}
+                                alt={`${s.firstName} ${s.lastName}`}
                                 style={{ 
                                   width: 36, 
                                   height: 36, 
@@ -534,11 +544,13 @@ export default function StudentsTable() {
                               />
                             ) : (
                               <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#e5e7eb", display: "grid", placeItems: "center", fontSize: 12, flexShrink: 0, fontWeight: 600 }}>
-                                {s.name.split(" ").map((p) => p[0]).join("")}
+                                {s.firstName[0]}{s.lastName[0]}
                               </div>
                             )}
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
+                              <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {s.lastName}, {s.firstName} {s.middleName ? s.middleName : ""}
+                              </div>
                               <div style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</div>
                             </div>
                           </div>
@@ -644,7 +656,7 @@ export default function StudentsTable() {
                   {selectedStudent.photoUrl ? (
                     <img 
                       src={selectedStudent.photoUrl} 
-                      alt={selectedStudent.name}
+                      alt={`${selectedStudent.firstName} ${selectedStudent.lastName}`}
                       style={{ 
                         width: 120, 
                         height: 120, 
@@ -664,7 +676,7 @@ export default function StudentsTable() {
                       fontSize: 36, 
                       fontWeight: 700 
                     }}>
-                      {selectedStudent.name.split(" ").map((p) => p[0]).join("")}
+                      {selectedStudent.firstName[0]}{selectedStudent.lastName[0]}
                     </div>
                   )}
                 </div>
@@ -772,12 +784,33 @@ export default function StudentsTable() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Full Name</label>
+                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Last Name *</label>
                     <input 
                       className={styles.input}
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      value={editForm.lastName}
+                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                      placeholder="Enter last name"
                     />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>First Name *</label>
+                      <input 
+                        className={styles.input}
+                        value={editForm.firstName}
+                        onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Middle Name</label>
+                      <input 
+                        className={styles.input}
+                        value={editForm.middleName || ""}
+                        onChange={(e) => setEditForm({ ...editForm, middleName: e.target.value })}
+                        placeholder="Optional"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Email</label>
@@ -1048,9 +1081,19 @@ export default function StudentsTable() {
               ) : (
                 <div style={{ display: "grid", gap: 16 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Full Name:</span>
-                    <span style={{ fontWeight: 700 }}>{selectedStudent.name}</span>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Last Name:</span>
+                    <span style={{ fontWeight: 700 }}>{selectedStudent.lastName}</span>
                   </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>First Name:</span>
+                    <span style={{ fontWeight: 700 }}>{selectedStudent.firstName}</span>
+                  </div>
+                  {selectedStudent.middleName && (
+                    <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                      <span style={{ fontWeight: 600, color: "#6b7280" }}>Middle Name:</span>
+                      <span style={{ fontWeight: 700 }}>{selectedStudent.middleName}</span>
+                    </div>
+                  )}
                   <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
                     <span style={{ fontWeight: 600, color: "#6b7280" }}>Email:</span>
                     <span>{selectedStudent.email}</span>
@@ -1145,7 +1188,7 @@ export default function StudentsTable() {
                         className={styles.button}
                         onClick={handleSave}
                         style={{ background: "#8b3b3b", color: "white", display: "flex", alignItems: "center", gap: 6 }}
-                        disabled={!editForm?.name || !editForm?.tagId || !editForm?.parent_name || !editForm?.parent_email || !editForm?.parent_phone}
+                        disabled={!editForm?.firstName || !editForm?.lastName || !editForm?.tagId || !editForm?.parent_name || !editForm?.parent_email || !editForm?.parent_phone}
                       >
                         <span>💾</span> {isAdding ? "Add Student" : "Save Changes"}
                       </button>
@@ -1249,7 +1292,7 @@ export default function StudentsTable() {
               Delete Student?
             </h3>
             <p style={{ margin: "0 0 24px 0", color: "#6b7280", textAlign: "center", fontSize: 14 }}>
-              Are you sure you want to delete <strong>{selectedStudent?.name}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong>{selectedStudent?.lastName}, {selectedStudent?.firstName}</strong>? This action cannot be undone.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
               <button 

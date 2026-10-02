@@ -60,8 +60,9 @@ export default function ScanPage() {
               { headers: { "X-API-Key": apiKey } }
             );
             const { student, log } = res.data.data;
+            const fullName = `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`;
             setResult({
-              studentName: student.name,
+              studentName: fullName,
               status: log.status,
               scanTime: new Date(log.scan_time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
             });
