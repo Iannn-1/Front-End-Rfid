@@ -10,7 +10,9 @@ import { StudentFormInput } from '@/types';
 
 const studentFormSchema = z.object({
   rfid_tag_uid: z.string().min(1, 'RFID Tag UID is required'),
-  name: z.string().min(1, 'Name is required'),
+  first_name: z.string().min(1, 'First Name is required'),
+  last_name: z.string().min(1, 'Last Name is required'),
+  middle_name: z.string().optional(),
   grade_level: z.string().min(1, 'Grade Level is required'),
   section: z.string().min(1, 'Section is required'),
   parent_name: z.string().min(1, 'Parent Name is required'),
@@ -33,7 +35,9 @@ export default function StudentForm({
     resolver: zodResolver(studentFormSchema),
     defaultValues: {
       rfid_tag_uid: '',
-      name: '',
+      first_name: '',
+      last_name: '',
+      middle_name: '',
       grade_level: '',
       section: '',
       parent_name: '',
@@ -65,15 +69,36 @@ export default function StudentForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="name">Name *</Label>
+          <Label htmlFor="last_name">Last Name *</Label>
           <Input
-            id="name"
-            {...form.register('name')}
-            placeholder="Enter student name"
+            id="last_name"
+            {...form.register('last_name')}
+            placeholder="Enter last name"
           />
-          {form.formState.errors.name && (
-            <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+          {form.formState.errors.last_name && (
+            <p className="text-sm text-red-500">{form.formState.errors.last_name.message}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="first_name">First Name *</Label>
+          <Input
+            id="first_name"
+            {...form.register('first_name')}
+            placeholder="Enter first name"
+          />
+          {form.formState.errors.first_name && (
+            <p className="text-sm text-red-500">{form.formState.errors.first_name.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="middle_name">Middle Name</Label>
+          <Input
+            id="middle_name"
+            {...form.register('middle_name')}
+            placeholder="Optional"
+          />
         </div>
 
         <div className="space-y-2">
