@@ -5,7 +5,10 @@ import styles from "../../../styles.module.css";
 
 interface Student {
   id: string;
-  name: string;
+  name?: string; // Backward compatibility
+  firstName?: string;
+  lastName?: string;
+  middleName?: string;
   email: string;
   studentType: "elementary" | "highschool" | "seniorhigh" | "college";
   grade: number | null;
@@ -77,7 +80,7 @@ export default function EditableProfile({ student }: { student: Student }) {
               {student.photoUrl ? (
                 <img 
                   src={student.photoUrl} 
-                  alt={student.name}
+                  alt={student.name || `${student.lastName}, ${student.firstName}`}
                   style={{ 
                     width: 80, 
                     height: 80, 
@@ -88,11 +91,11 @@ export default function EditableProfile({ student }: { student: Student }) {
                 />
               ) : (
                 <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#e5e7eb", display: "grid", placeItems: "center", fontSize: 24, fontWeight: 700 }}>
-                  {student.name.split(" ").map((p: string) => p[0]).join("")}
+                  {student.name ? student.name.split(" ").map((p: string) => p[0]).join("") : `${student.firstName?.[0] || ''}${student.lastName?.[0] || ''}`}
                 </div>
               )}
               <div>
-                <div style={{ fontWeight: 700 }}>{student.name}</div>
+                <div style={{ fontWeight: 700 }}>{student.name || `${student.lastName}, ${student.firstName}${student.middleName ? ' ' + student.middleName : ''}`}</div>
                 <div style={{ fontSize: 12, color: "#6b7280" }}>{student.email}</div>
                 <div className={styles.badge + " " + (student.status === "active" ? styles.statusOnline : styles.statusOffline)} style={{ marginTop: 6 }}>{student.status}</div>
               </div>

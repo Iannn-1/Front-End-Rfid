@@ -6,7 +6,10 @@ import axios from "axios";
 
 interface StudentInfo {
   id: number;
-  name: string;
+  name?: string; // Backward compatibility
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
   grade_level: string;
   section: string;
   student_level: string;
@@ -150,7 +153,7 @@ export default function ParentDashboardPage() {
                 Hello, {parent?.name?.split(" ")[0]}! 👋
               </h2>
               <p style={{ color: "#475569", fontSize: 14, margin: 0 }}>
-                Your child: <strong>{student.last_name}, {student.first_name} {student.middle_name || ''}</strong>
+                Your child: <strong>{student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</strong>
               </p>
             </div>
 
