@@ -281,11 +281,6 @@ export default function StudentsTable() {
   };
 
   const handleAddNew = () => {
-    // Generate tag ID with year and sequential number: YYYY-XXXX
-    const currentYear = new Date().getFullYear();
-    const enrollmentNumber = Math.floor(1 + Math.random() * 9999).toString().padStart(4, '0');
-    const randomTagId = `${currentYear}-${enrollmentNumber}`;
-    
     const newStudent: Student = {
       id: `temp-${Date.now()}`,
       firstName: "",
@@ -298,7 +293,7 @@ export default function StudentsTable() {
       college: "",
       course: "",
       status: "active",
-      tagId: randomTagId,
+      tagId: "", // User will enter RFID card serial number manually
       lastSeen: null,
     };
     setEditForm(newStudent);
@@ -979,30 +974,16 @@ export default function StudentsTable() {
                   )}
                   
                   <div>
-                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Tag ID</label>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input 
-                        className={styles.input}
-                        value={editForm.tagId || ""}
-                        readOnly
-                        style={{ flex: 1, background: "#f9fafb", cursor: "not-allowed" }}
-                      />
-                      <button
-                        type="button"
-                        className={styles.button}
-                        onClick={() => {
-                          const currentYear = new Date().getFullYear();
-                          const enrollmentNumber = Math.floor(1 + Math.random() * 9999).toString().padStart(4, '0');
-                          const newTagId = `${currentYear}-${enrollmentNumber}`;
-                          setEditForm({ ...editForm, tagId: newTagId });
-                        }}
-                        style={{ background: "#6b7280", color: "white", whiteSpace: "nowrap" }}
-                      >
-                        🔄 Regenerate
-                      </button>
-                    </div>
+                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>RFID Tag UID</label>
+                    <input 
+                      className={styles.input}
+                      value={editForm.tagId || ""}
+                      onChange={(e) => setEditForm({ ...editForm, tagId: e.target.value.toUpperCase() })}
+                      placeholder="e.g., 693BCD860D"
+                      style={{ fontFamily: "monospace", width: "100%" }}
+                    />
                     <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                      Format: YEAR-NUMBER (e.g., 2024-0001)
+                      Enter RFID card serial number (read with NFC Tools app)
                     </div>
                   </div>
                   <div>
@@ -1132,8 +1113,8 @@ export default function StudentsTable() {
                     </>
                   )}
                   <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontWeight: 600, color: "#6b7280" }}>Tag ID:</span>
-                    <span>{selectedStudent.tagId || "—"}</span>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>RFID Tag UID:</span>
+                    <span style={{ fontFamily: "monospace" }}>{selectedStudent.tagId || "Not assigned"}</span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
                     <span style={{ fontWeight: 600, color: "#6b7280" }}>Status:</span>
