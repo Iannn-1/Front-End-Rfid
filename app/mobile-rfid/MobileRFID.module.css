@@ -1,0 +1,317 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1rem;
+  border-radius: 15px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
+}
+
+.settingsBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.settingsBtn:active {
+  transform: scale(0.95);
+}
+
+.settings {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.settings label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.saveBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.saveBtn:active {
+  transform: scale(0.98);
+}
+
+.settings small {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.statusCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusText {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #333;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.statusText div {
+  margin: 0.25rem 0;
+}
+
+.controls {
+  margin-bottom: 1rem;
+}
+
+.scanBtn {
+  width: 100%;
+  padding: 1.5rem;
+  border: none;
+  border-radius: 15px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.scanBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.start {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.start:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.stop {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  color: white;
+}
+
+.stop:active {
+  transform: scale(0.98);
+}
+
+.notSupported {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.notSupported h2 {
+  color: #eb3349;
+  margin: 0 0 1rem 0;
+}
+
+.notSupported p {
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.logsSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.logsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.logsHeader h3 {
+  margin: 0;
+  color: #333;
+}
+
+.clearBtn {
+  background: #f45c43;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.clearBtn:active {
+  transform: scale(0.95);
+}
+
+.logsList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.logItem {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid #667eea;
+}
+
+.logIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.logDetails {
+  flex: 1;
+}
+
+.logName {
+  font-weight: 700;
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.logMeta {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.logCard {
+  color: #999;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.footer {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.footer p {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.footer ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  color: #666;
+  line-height: 1.8;
+}
+
+.note {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 8px;
+  color: #856404 !important;
+  font-weight: 500 !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .statusCard {
+    padding: 1.5rem;
+  }
+
+  .statusText {
+    font-size: 1rem;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.scanBtn.start {
+  animation: pulse 2s infinite;
+}
