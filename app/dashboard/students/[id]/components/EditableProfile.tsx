@@ -26,6 +26,7 @@ interface Student {
 export default function EditableProfile({ student }: { student: Student }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    tagId: student.tagId || "",
     location: student.location || "",
     emergencyContact: student.emergencyContact || "",
     emergencyPhone: student.emergencyPhone || "",
@@ -35,18 +36,41 @@ export default function EditableProfile({ student }: { student: Student }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/students/${student.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      
+      // Map frontend field names to backend field names
+      const updateData: any = {};
+      if (formData.tagId !== student.tagId) {
+        updateData.rfid_tag_uid = formData.tagId;
+      }
+      if (formData.location !== student.location) {
+        updateData.location = formData.location;
+      }
+      if (formData.emergencyContact !== student.emergencyContact) {
+        updateData.emergency_contact = formData.emergencyContact;
+      }
+      if (formData.emergencyPhone !== student.emergencyPhone) {
+        updateData.emergency_phone = formData.emergencyPhone;
+      }
+
+      const res = await fetch(`${apiUrl}/students/${student.id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify(updateData),
       });
 
-      if (!res.ok) throw new Error("Failed to update");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update');
+      }
       
       setIsEditing(false);
       window.location.reload();
-    } catch (error) {
-      alert("Failed to save changes");
+    } catch (error: any) {
+      alert(error.message || 'Failed to save changes');
     } finally {
       setIsSaving(false);
     }
@@ -131,9 +155,37 @@ export default function EditableProfile({ student }: { student: Student }) {
       </section>
 
       <section className={styles.card}>
-        <div className={styles.cardHeader}><h2>Location & Emergency Contact</h2></div>
+        <div className={styles.cardHeader}><h2>RFID Tag & Location</h2></div>
         <div className={styles.cardBody}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#374151" }}>
+                RFID Tag UID
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.tagId}
+                  onChange={(e) => setFormData({ ...formData, tagId: e.target.value.toUpperCase() })}
+                  placeholder="e.g., 693BCD860D"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 6,
+                    fontSize: 14,
+                    fontFamily: "monospace",
+                  }}
+                />
+              ) : (
+                <div style={{ padding: "8px 0", fontSize: 14, color: "#6b7280", fontFamily: "monospace" }}>
+                  {student.tagId || "Not assigned"}
+                </div>
+              )}
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                Use NFC Tools app to read card serial number
+              </div>
+            </div>
             <div>
               <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#374151" }}>
                 Location
@@ -158,6 +210,22 @@ export default function EditableProfile({ student }: { student: Student }) {
                 </div>
               )}
             </div>
+            <div>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#374151" }}>
+                Status
+              </label>
+              <div style={{ padding: "8px 0", fontSize: 14, color: "#6b7280" }}>
+                {student.status}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}><h2>Emergency Contact</h2></div>
+        <div className={styles.cardBody}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
             <div>
               <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#374151" }}>
                 Emergency Contact Name
