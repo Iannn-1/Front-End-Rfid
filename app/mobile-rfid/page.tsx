@@ -72,13 +72,24 @@ export default function MobileRFIDPage() {
   }
 
   const sendToBackend = async (cardId: string): Promise<ScanResult> => {
-    // Fetch API URL from server-side config endpoint
-    const configResponse = await fetch('/api/config')
-    const config = await configResponse.json()
-    const backendUrl = config.apiUrl || 'http://localhost:3001'
-    
     try {
-      const response = await fetch(`${backendUrl}/api/v1/rfid/scan`, {
+      // Fetch API URL from server-side config endpoint
+      const configResponse = await fetch('/api/config')
+      if (!configResponse.ok) {
+        console.error('Config fetch failed:', configResponse.status)
+        return {
+          success: false,
+          error: 'Failed to get API configuration'
+        }
+      }
+      
+      const config = await configResponse.json()
+      const backendUrl = config.apiUrl
+      
+      console.log('[Mobile RFID] Backend URL:', backendUrl)
+      console.log('[Mobile RFID] Scanning card:', cardId)
+    
+      const response = await fetch(`${backendUrl}/rfid/scan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,12 +101,13 @@ export default function MobileRFIDPage() {
       })
 
       const data = await response.json()
+      console.log('[Mobile RFID] Response:', data)
       return data
     } catch (error) {
-      console.error('Backend error:', error)
+      console.error('[Mobile RFID] Backend error:', error)
       return {
         success: false,
-        error: 'Failed to connect to server'
+        error: `Failed to connect to server: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
   }
