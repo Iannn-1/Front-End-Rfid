@@ -72,7 +72,10 @@ export default function MobileRFIDPage() {
   }
 
   const sendToBackend = async (cardId: string): Promise<ScanResult> => {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    // Fetch API URL from server-side config endpoint
+    const configResponse = await fetch('/api/config')
+    const config = await configResponse.json()
+    const backendUrl = config.apiUrl || 'http://localhost:3001'
     
     try {
       const response = await fetch(`${backendUrl}/api/v1/rfid/scan`, {
