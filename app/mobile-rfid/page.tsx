@@ -5,17 +5,19 @@ import styles from './MobileRFID.module.css'
 
 interface ScanResult {
   success: boolean
-  student?: {
-    student_id: number
-    first_name: string
-    middle_name: string | null
-    last_name: string
-    rfid_tag_uid: string
-  }
-  log?: {
-    log_id: number
-    action: 'entry' | 'exit'
-    timestamp: string
+  data?: {
+    student: {
+      id: number
+      first_name: string
+      middle_name: string | null
+      last_name: string
+      rfid_tag_uid: string
+    }
+    log: {
+      id: number
+      status: 'IN' | 'OUT'
+      scan_time: string
+    }
   }
   error?: string
 }
@@ -149,17 +151,17 @@ export default function MobileRFIDPage() {
         // Send to backend
         const result = await sendToBackend(cardId)
 
-        if (result.success && result.student && result.log) {
-          const studentName = `${result.student.first_name} ${result.student.middle_name || ''} ${result.student.last_name}`.trim()
-          const action = result.log.action
+        if (result.success && result.data) {
+          const studentName = `${result.data.student.first_name} ${result.data.student.middle_name || ''} ${result.data.student.last_name}`.trim()
+          const action = result.data.log.status === 'IN' ? 'entry' : 'exit'
           
-          setStatus(`✅ Success!\n${studentName}\nAction: ${action.toUpperCase()}\nTime: ${new Date(result.log.timestamp).toLocaleTimeString()}`)
+          setStatus(`✅ Success!\n${studentName}\nAction: ${result.data.log.status}\nTime: ${new Date(result.data.log.scan_time).toLocaleTimeString()}`)
 
           // Add to recent logs
           addToRecentLogs({
             studentName,
             action,
-            timestamp: result.log.timestamp,
+            timestamp: result.data.log.scan_time,
             cardId
           })
 
