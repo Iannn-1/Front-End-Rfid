@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import styles from "./ParentDashboard.module.css";
 
 interface StudentInfo {
   id: number;
@@ -99,11 +100,8 @@ export default function ParentDashboardPage() {
   const days = groupByDay(logs);
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg,#e8f4f8 0%,#d0e8f0 100%)",
-      fontFamily: "system-ui, sans-serif",
-    }}>
+    <div className={styles.pageBackground}>
+      <div className={styles.phoneCanvas}>
       {/* Header */}
       <header style={{
         background: "linear-gradient(135deg,#1a237e,#283593)",
@@ -112,11 +110,6 @@ export default function ParentDashboardPage() {
         boxShadow: "0 2px 12px rgba(0,0,0,0.2)", position: "sticky", top: 0, zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
-            display: "grid", placeItems: "center", fontSize: 20,
-          }}>📡</div>
           <div>
             <div style={{ color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>School RFID</div>
             <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Parent Portal</div>
@@ -132,7 +125,7 @@ export default function ParentDashboardPage() {
         </button>
       </header>
 
-      <div style={{ padding: "20px 16px", maxWidth: 600, margin: "0 auto" }}>
+      <div className={styles.content}>
         {loading && (
           <div style={{ textAlign: "center", padding: 60, color: "#64748b", fontSize: 14 }}>
             Loading attendance data...
@@ -158,38 +151,28 @@ export default function ParentDashboardPage() {
             </div>
 
             {/* Student card */}
-            <div style={{
-              background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)", display: "flex", gap: 16, alignItems: "center",
-            }}>
+            <div className={styles.studentCard}>
               {student.profile_photo ? (
                 <img src={student.profile_photo} alt={`${student.first_name} ${student.last_name}`}
-                  style={{ width: 70, height: 70, borderRadius: "50%", objectFit: "cover", border: "3px solid #e5e7eb", flexShrink: 0 }} />
+                  className={styles.studentPhoto} />
               ) : (
-                <div style={{
-                  width: 70, height: 70, borderRadius: "50%", background: "#e5e7eb",
-                  display: "grid", placeItems: "center", fontSize: 24, fontWeight: 800, flexShrink: 0,
-                }}>
+                <div className={styles.studentInitial}>
                   {student.first_name[0]}{student.last_name[0]}
                 </div>
               )}
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, color: "#1f2937", marginBottom: 4 }}>
+              <div className={styles.studentInfo}>
+                <div className={styles.studentName}>
                   {student.last_name}, {student.first_name} {student.middle_name || ''}
                 </div>
-                <div style={{ fontSize: 13, color: "#6b7280" }}>{student.student_level} · {student.grade_level} · {student.section}</div>
-                {student.course && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{student.course}</div>}
+                <div className={styles.studentMeta}>{student.student_level} · {student.grade_level} · {student.section}</div>
+                {student.course && <div className={styles.studentCourse}>{student.course}</div>}
               </div>
             </div>
 
             {/* Current status */}
-            <div style={{
-              background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Current Status</div>
-              <div style={{
-                padding: "12px 16px", borderRadius: 10, fontSize: 16, fontWeight: 700,
+            <div className={styles.panel}>
+              <div className={styles.statusLabel}>Current Status</div>
+              <div className={styles.statusValue} style={{
                 background: currentStatus === "IN" ? "#d1fae5" : currentStatus === "OUT" ? "#fee2e2" : "#f3f4f6",
                 color: currentStatus === "IN" ? "#065f46" : currentStatus === "OUT" ? "#991b1b" : "#6b7280",
               }}>
@@ -198,14 +181,14 @@ export default function ParentDashboardPage() {
             </div>
 
             {/* Weekly attendance */}
-            <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#1f2937", marginBottom: 16 }}>📅 Weekly Attendance</div>
+            <div className={styles.panel}>
+              <div className={styles.weeklyTitle}>📅 Weekly Attendance</div>
 
               {days.length === 0 ? (
                 <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "20px 0" }}>No attendance records in the last 7 days.</p>
               ) : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <div className={styles.tableViewport}>
+                  <table className={styles.attendanceTable}>
                     <thead>
                       <tr style={{ background: "#fef3c7" }}>
                         {["Date", "Time In", "Time Out", "Status"].map((h) => (
@@ -249,6 +232,7 @@ export default function ParentDashboardPage() {
             </p>
           </>
         )}
+      </div>
       </div>
     </div>
   );

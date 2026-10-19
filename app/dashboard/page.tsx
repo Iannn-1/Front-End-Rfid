@@ -81,25 +81,25 @@ export default function DashboardPage() {
         }} />
         
         {/* Content wrapper */}
-        <div style={{ position: "relative", zIndex: 2, padding: "40px 40px 140px 40px" }}>
+        <div className={styles.heroContent}>
           {/* Top section: Greeting + Title + Clock */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+          <div className={styles.heroHeader}>
             <div>
               <div style={{ fontSize: 15, color: "#f8c22e", fontWeight: 700, marginBottom: 12 }}>
                 {greeting}
               </div>
-              <h1 style={{ fontSize: 42, fontWeight: 900, color: "white", margin: 0, lineHeight: 1.1, textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
+              <h1 className={styles.heroTitle}>
                 Dashboard Overview
               </h1>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.95)", marginTop: 10, marginBottom: 0, fontWeight: 500 }}>
+              <p className={styles.heroDescription}>
                 Here's what's happening on campus today
               </p>
             </div>
-            <div style={{ textAlign: "right" }}>
+            <div className={styles.heroClock}>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 6, fontWeight: 600 }}>
                 {dateStr}
               </div>
-              <div style={{ fontSize: 56, fontWeight: 900, color: "#f8c22e", lineHeight: 1, textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}>
+              <div className={styles.heroTime}>
                 {timeStr}
               </div>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 8, fontWeight: 500 }}>
@@ -110,14 +110,8 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Stat Cards Overlay (positioned at bottom of banner) ── */}
-        <div style={{
-          position: "relative",
-          zIndex: 3,
-          padding: "0 40px",
-          marginTop: -100,
-          paddingBottom: 20,
-        }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
+        <div className={styles.heroStatsWrap}>
+          <div className={styles.heroStatsGrid}>
             {[
               {
                 label: "Total Students",
