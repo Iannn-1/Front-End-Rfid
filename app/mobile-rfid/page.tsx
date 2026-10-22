@@ -12,6 +12,7 @@ interface ScanResult {
       middle_name: string | null
       last_name: string
       rfid_tag_uid: string
+      school_id?: string // Format: YYYY-NNNN
     }
     log: {
       id: number
@@ -154,15 +155,16 @@ export default function MobileRFIDPage() {
         if (result.success && result.data) {
           const studentName = `${result.data.student.first_name} ${result.data.student.middle_name || ''} ${result.data.student.last_name}`.trim()
           const action = result.data.log.status === 'IN' ? 'entry' : 'exit'
+          const schoolId = result.data.student.school_id || 'N/A'
           
-          setStatus(`✅ Success!\n${studentName}\nAction: ${result.data.log.status}\nTime: ${new Date(result.data.log.scan_time).toLocaleTimeString()}`)
+          setStatus(`✅ Success!\n${studentName}\nID: ${schoolId}\nAction: ${result.data.log.status}\nTime: ${new Date(result.data.log.scan_time).toLocaleTimeString()}`)
 
           // Add to recent logs
           addToRecentLogs({
             studentName,
             action,
             timestamp: result.data.log.scan_time,
-            cardId
+            cardId: schoolId // Show School ID instead of RFID UID
           })
 
           // Success vibration pattern
@@ -301,7 +303,7 @@ export default function MobileRFIDPage() {
                   <div className={styles.logMeta}>
                     {log.action.toUpperCase()} • {new Date(log.timestamp).toLocaleString()}
                   </div>
-                  <div className={styles.logCard}>Card: {log.cardId}</div>
+                  <div className={styles.logCard}>ID: {log.cardId}</div>
                 </div>
               </div>
             ))}

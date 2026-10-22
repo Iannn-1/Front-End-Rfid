@@ -38,6 +38,7 @@ type Student = {
   course?: string | null;
   status: "active" | "disabled";
   tagId: string | null;
+  school_id?: string; // Format: YYYY-NNNN
   lastSeen: string | null;
   photoUrl?: string;
   // Extra backend fields preserved for save
@@ -66,6 +67,7 @@ function toLocal(s: BackendStudent): Student {
     course: s.course ?? null,
     status: s.status === "Active" ? "active" : "disabled",
     tagId: s.rfid_tag_uid,
+    school_id: s.school_id,
     lastSeen: s.updatedAt ?? null,
     photoUrl: s.profile_photo,
     parent_name: s.parent_name,
@@ -361,6 +363,7 @@ export default function StudentsTable() {
 
     const payload = {
       rfid_tag_uid: editForm.tagId ?? "",
+      school_id: editForm.school_id || undefined,
       first_name: editForm.firstName,
       last_name: editForm.lastName,
       middle_name: editForm.middleName || undefined,
@@ -510,11 +513,11 @@ export default function StudentsTable() {
                   <thead>
                     <tr>
                       <th>Name</th>
+                      <th>School ID</th>
                       <th>Type</th>
                       <th>Grade/Year</th>
                       <th>Section/Course</th>
                       <th>Status</th>
-                      <th>Tag</th>
                       <th>Last Seen</th>
                       <th></th>
                     </tr>
@@ -551,6 +554,11 @@ export default function StudentsTable() {
                           </div>
                         </td>
                         <td>
+                          <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 600 }}>
+                            {s.school_id || "—"}
+                          </span>
+                        </td>
+                        <td>
                           <span className={styles.badge} style={{ background: LEVEL_COLORS[s.studentType]?.bg ?? "#f3f4f6", color: LEVEL_COLORS[s.studentType]?.text ?? "#374151" }}>
                             {LEVEL_LABELS[s.studentType] ?? s.studentType}
                           </span>
@@ -566,7 +574,6 @@ export default function StudentsTable() {
                             {s.status}
                           </span>
                         </td>
-                        <td>{s.tagId || "—"}</td>
                         <td style={{ whiteSpace: "nowrap" }}>{s.lastSeen ? new Date(s.lastSeen).toLocaleString() : "—"}</td>
                         <td>
                           <div className={styles.controls}>
@@ -987,6 +994,49 @@ export default function StudentsTable() {
                     </div>
                   </div>
                   <div>
+                    <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>
+                      School ID
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ 
+                        fontFamily: "monospace", 
+                        fontSize: 16, 
+                        fontWeight: 600,
+                        padding: "8px 12px",
+                        background: "#f3f4f6",
+                        borderRadius: 6,
+                        border: "1px solid #d1d5db",
+                        color: "#6b7280"
+                      }}>
+                        {new Date().getFullYear()}-
+                      </span>
+                      <input 
+                        className={styles.input}
+                        value={editForm.school_id ? editForm.school_id.split('-')[1] || "" : ""}
+                        onChange={(e) => {
+                          // Only allow numbers, max 4 digits
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          const currentYear = new Date().getFullYear();
+                          setEditForm({ 
+                            ...editForm, 
+                            school_id: value ? `${currentYear}-${value}` : undefined 
+                          });
+                        }}
+                        placeholder="0000"
+                        maxLength={4}
+                        style={{ 
+                          fontFamily: "monospace", 
+                          fontSize: 16,
+                          flex: 1,
+                          letterSpacing: "0.05em"
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                      Enter only the last 4 digits (year auto-updates). Numbers only.
+                    </div>
+                  </div>
+                  <div>
                     <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: 14 }}>Status</label>
                     <select 
                       className={styles.select}
@@ -1112,6 +1162,10 @@ export default function StudentsTable() {
                       </div>
                     </>
                   )}
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontWeight: 600, color: "#6b7280" }}>School ID:</span>
+                    <span style={{ fontFamily: "monospace", fontWeight: 600 }}>{selectedStudent.school_id || "Not assigned"}</span>
+                  </div>
                   <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8, alignItems: "center" }}>
                     <span style={{ fontWeight: 600, color: "#6b7280" }}>RFID Tag UID:</span>
                     <span style={{ fontFamily: "monospace" }}>{selectedStudent.tagId || "Not assigned"}</span>

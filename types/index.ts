@@ -11,6 +11,7 @@ export type StudentStatus = 'Active' | 'Inactive';
 export interface Student {
   id: string;
   rfid_tag_uid: string;
+  school_id?: string; // Format: YYYY-NNNN (e.g., 2026-8813)
   first_name: string;
   last_name: string;
   middle_name?: string;
@@ -76,6 +77,7 @@ export interface LoginResponse {
 
 export interface StudentFormInput {
   rfid_tag_uid: string;
+  school_id?: string; // Format: YYYY-NNNN (only last 4 digits editable)
   first_name: string;
   last_name: string;
   middle_name?: string;
