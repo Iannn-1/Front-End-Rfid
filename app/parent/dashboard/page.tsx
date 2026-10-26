@@ -141,11 +141,11 @@ export default function ParentDashboardPage() {
         {!loading && !error && student && (
           <>
             {/* Greeting */}
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ color: "#8b3b3b", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>
+            <div className={styles.greeting}>
+              <h2 className={styles.greetingTitle}>
                 Hello, {parent?.name?.split(" ")[0]}! 👋
               </h2>
-              <p style={{ color: "#475569", fontSize: 14, margin: 0 }}>
+              <p className={styles.childIntro}>
                 Your child: <strong>{student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</strong>
               </p>
             </div>
