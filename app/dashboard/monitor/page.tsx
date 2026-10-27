@@ -243,7 +243,7 @@ export default function MonitorPage() {
           .toUpperCase()
       : null;
 
-  const rfidUid = student?.rfid_tag_uid || (latest as any)?.student_id || '—';
+  const rfidUid = student?.school_id || student?.rfid_tag_uid || (latest as any)?.student_id || '—';
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
