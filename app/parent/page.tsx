@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Radio, Eye, EyeOff, AlertCircle } from "lucide-react";
 import api from "@/lib/api";
 
 export default function ParentLoginPage() {
@@ -41,10 +42,12 @@ export default function ParentLoginPage() {
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <div style={{
           width: 64, height: 64, borderRadius: 16,
-          background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
-          display: "grid", placeItems: "center", fontSize: 32,
-          margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(192,80,77,0.4)",
-        }}>📡</div>
+          background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+          display: "flex", alignItems: "center", justifyContent: "center", color: "white",
+          margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.4)",
+        }}>
+          <Radio size={32} strokeWidth={2.5} />
+        </div>
         <h1 style={{ color: "#fff", fontSize: 28, fontWeight: 900, margin: "0 0 4px" }}>School RFID</h1>
         <p style={{ color: "rgba(255,255,255,0.6)", margin: 0, fontSize: 14 }}>Parent Portal</p>
       </div>
@@ -60,7 +63,8 @@ export default function ParentLoginPage() {
         <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 24px" }}>Sign in to monitor your child's attendance</p>
 
         {error && (
-          <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13 }}>
+          <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertCircle size={16} />
             {error}
           </div>
         )}
@@ -92,8 +96,8 @@ export default function ParentLoginPage() {
                 }}
               />
               <button type="button" onClick={() => setShowPwd(v => !v)}
-                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 16 }}>
-                {showPwd ? "🙈" : "👁️"}
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 16, display: "flex", alignItems: "center" }}>
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -101,10 +105,10 @@ export default function ParentLoginPage() {
           <button type="submit" disabled={loading}
             style={{
               padding: "13px", borderRadius: 10, fontSize: 15, fontWeight: 700,
-              background: "linear-gradient(135deg,#8b3b3b,#c0504d)", color: "#fff",
+              background: "linear-gradient(135deg,#3b82f6,#2563eb)", color: "#fff",
               border: "none", cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.7 : 1, marginTop: 4,
-              boxShadow: "0 4px 16px rgba(192,80,77,0.4)",
+              boxShadow: "0 4px 16px rgba(59, 130, 246, 0.4)",
             }}>
             {loading ? "Signing in..." : "Sign In →"}
           </button>

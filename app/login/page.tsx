@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { saveToken, saveUser, isAuthenticated } from '@/lib/auth';
+import { Mail, Lock, Eye, EyeOff, CreditCard, Zap, BarChart3, School, BookOpen, GraduationCap, Building2 } from 'lucide-react';
 import s from "../LandingPage.module.css";
 
 /* ── animated counter hook ── */
@@ -144,17 +145,17 @@ export default function LoginPage() {
           {/* Live stats ticker */}
           <div className={s.ticker}>
             <div className={s.tickerItem}>
-              <div className={s.tickerNum} style={{ color: "#10b981" }}>{c1.toLocaleString()}</div>
+              <div className={s.tickerNum}>{c1.toLocaleString()}</div>
               <div className={s.tickerLbl}>Students Enrolled</div>
             </div>
             <div className={s.tickerDivider} />
             <div className={s.tickerItem}>
-              <div className={s.tickerNum} style={{ color: "#e6c57a" }}>{c2}%</div>
+              <div className={s.tickerNum}>{c2}%</div>
               <div className={s.tickerLbl}>Attendance Rate</div>
             </div>
             <div className={s.tickerDivider} />
             <div className={s.tickerItem}>
-              <div className={s.tickerNum} style={{ color: "#60a5fa" }}>{c3}</div>
+              <div className={s.tickerNum}>{c3}</div>
               <div className={s.tickerLbl}>RFID Readers</div>
             </div>
           </div>
@@ -170,7 +171,6 @@ export default function LoginPage() {
         {/* ── Login card ── */}
         <div className={s.loginCard}>
           <div className={s.loginCardTop}>
-            <div className={s.loginCardIcon}>🔐</div>
             <div>
               <div className={s.loginCardTitle}>Admin Portal</div>
               <div className={s.loginCardSub}>Sign in to access the dashboard</div>
@@ -181,7 +181,7 @@ export default function LoginPage() {
             <div className={s.field}>
               <label className={s.fieldLabel}>Email Address</label>
               <div className={s.fieldWrap}>
-                <span className={s.fieldIcon}>✉️</span>
+                <Mail className={s.fieldIcon} size={16} />
                 <input
                   type="email"
                   className={s.fieldInput}
@@ -197,7 +197,7 @@ export default function LoginPage() {
             <div className={s.field}>
               <label className={s.fieldLabel}>Password</label>
               <div className={s.fieldWrap}>
-                <span className={s.fieldIcon}>🔒</span>
+                <Lock className={s.fieldIcon} size={16} />
                 <input
                   type={showPw ? "text" : "password"}
                   className={s.fieldInput}
@@ -208,7 +208,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                 />
                 <button type="button" className={s.eyeBtn} onClick={() => setShowPw(v => !v)} tabIndex={-1}>
-                  {showPw ? "🙈" : "👁️"}
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -229,38 +229,20 @@ export default function LoginPage() {
           </form>
 
           <div className={s.loginFooter}>
-            <span className={s.secureTag}>🔒 Secured · Role-based access</span>
+            <span className={s.secureTag}>Secured · Role-based access</span>
           </div>
 
           {/* Parent portal links */}
-          <div style={{
-            marginTop: 16,
-            paddingTop: 16,
-            borderTop: "1px solid rgba(107, 114, 128, 0.2)",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            alignItems: "center",
-          }}>
-            <p style={{ color: "#6b7280", fontSize: 12, margin: 0, fontWeight: 600 }}>
+          <div className={s.parentSection}>
+            <p className={s.parentPrompt}>
               Are you a parent/guardian?
             </p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <a href="/parent" style={{
-                padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                background: "linear-gradient(135deg, #fbbf24, #f59e0b)", color: "white",
-                border: "1px solid rgba(251, 191, 36, 0.5)", textDecoration: "none",
-                transition: "all 0.15s", boxShadow: "0 2px 8px rgba(251, 191, 36, 0.3)",
-              }}>
-                👨‍👩‍👧 Parent Login
+            <div className={s.parentButtons}>
+              <a href="/parent" className={s.parentBtn}>
+                Parent Login
               </a>
-              <a href="/parent/register" style={{
-                padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                background: "linear-gradient(135deg, #10b981, #059669)", color: "white",
-                border: "1px solid rgba(16, 185, 129, 0.5)", textDecoration: "none",
-                transition: "all 0.15s", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
-              }}>
-                ✏️ Register
+              <a href="/parent/register" className={s.registerBtn}>
+                Register
               </a>
             </div>
           </div>
@@ -276,13 +258,28 @@ export default function LoginPage() {
           <h2 className={s.sectionTitle}>From scan to report in seconds</h2>
           <div className={s.steps}>
             {[
-              { n: "01", icon: "🏷️", title: "Tap RFID Tag",    desc: "Students tap their RFID card at the Main Gate reader on entry and exit." },
-              { n: "02", icon: "⚡", title: "Instant Logging",  desc: "The system records the scan, timestamps it, and updates attendance in real time." },
-              { n: "03", icon: "📊", title: "Live Dashboard",   desc: "Admins see live IN/OUT counts, attendance rates per level, and holiday calendars." },
+              { 
+                n: "01", 
+                icon: <CreditCard size={32} strokeWidth={2} />, 
+                title: "Tap RFID Tag", 
+                desc: "Students tap their RFID card at the Main Gate reader on entry and exit." 
+              },
+              { 
+                n: "02", 
+                icon: <Zap size={32} strokeWidth={2} />, 
+                title: "Instant Logging", 
+                desc: "The system records the scan, timestamps it, and updates attendance in real time." 
+              },
+              { 
+                n: "03", 
+                icon: <BarChart3 size={32} strokeWidth={2} />, 
+                title: "Live Dashboard", 
+                desc: "Admins see live IN/OUT counts, attendance rates per level, and holiday calendars." 
+              },
             ].map(step => (
               <div key={step.n} className={s.stepCard}>
                 <div className={s.stepNum}>{step.n}</div>
-                <div className={s.stepIcon}>{step.icon}</div>
+                <div className={s.stepIconWrapper}>{step.icon}</div>
                 <h3 className={s.stepTitle}>{step.title}</h3>
                 <p className={s.stepDesc}>{step.desc}</p>
               </div>
@@ -300,14 +297,25 @@ export default function LoginPage() {
           <h2 className={s.sectionTitle}>All school levels, one system</h2>
           <div className={s.levelsGrid}>
             {[
-              { icon: "🏫", label: "Elementary",  sub: "Grades 1 – 6",    color: "#10b981", bg: "rgba(16,185,129,0.1)",  border: "rgba(16,185,129,0.25)" },
-              { icon: "📚", label: "High School",  sub: "Grades 7 – 10",   color: "#3b82f6", bg: "rgba(59,130,246,0.1)",  border: "rgba(59,130,246,0.25)" },
-              { icon: "🎓", label: "Senior High",  sub: "Grades 11 – 12",  color: "#a78bfa", bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.25)" },
-              { icon: "🏛️", label: "College",      sub: "Years 1 – 4",     color: "#e6c57a", bg: "rgba(230,197,122,0.1)", border: "rgba(230,197,122,0.25)" },
+              { 
+                label: "Elementary", 
+                sub: "Grades 1 – 6"
+              },
+              { 
+                label: "High School", 
+                sub: "Grades 7 – 10"
+              },
+              { 
+                label: "Senior High", 
+                sub: "Grades 11 – 12"
+              },
+              { 
+                label: "College", 
+                sub: "Years 1 – 4"
+              },
             ].map(lv => (
-              <div key={lv.label} className={s.levelCard} style={{ background: lv.bg, border: `1px solid ${lv.border}` }}>
-                <div className={s.levelIcon}>{lv.icon}</div>
-                <div className={s.levelLabel} style={{ color: lv.color }}>{lv.label}</div>
+              <div key={lv.label} className={s.levelCard}>
+                <div className={s.levelLabel}>{lv.label}</div>
                 <div className={s.levelSub}>{lv.sub}</div>
               </div>
             ))}

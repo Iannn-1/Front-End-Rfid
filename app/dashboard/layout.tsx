@@ -4,16 +4,16 @@ import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { isAuthenticated, getUser, clearAuth } from "@/lib/auth";
+import { LayoutDashboard, ClipboardList, MonitorPlay, Users, Tag, BarChart3, Settings, Search, Bell, X, Menu, LogOut } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/dashboard",            label: "Overview",   icon: "⊞" },
-  { href: "/dashboard/attendance", label: "Attendance", icon: "📋" },
-  { href: "/dashboard/monitor",    label: "Monitor",    icon: "📺" },
-  { href: "/dashboard/students",   label: "Students",   icon: "👨‍🎓" },
-  { href: "/dashboard/tags",       label: "RFID Tags",  icon: "🏷️" },
-  { href: "/dashboard/barcodes",   label: "Barcodes",   icon: "📊" },
-  { href: "/dashboard/reports",    label: "Reports",    icon: "📈" },
-  { href: "/dashboard/settings",   label: "Settings",   icon: "⚙️" },
+  { href: "/dashboard",            label: "Overview",   icon: LayoutDashboard },
+  { href: "/dashboard/attendance", label: "Attendance", icon: ClipboardList },
+  { href: "/dashboard/monitor",    label: "Monitor",    icon: MonitorPlay },
+  { href: "/dashboard/students",   label: "Students",   icon: Users },
+  { href: "/dashboard/tags",       label: "RFID Tags",  icon: Tag },
+  { href: "/dashboard/reports",    label: "Reports",    icon: BarChart3 },
+  { href: "/dashboard/settings",   label: "Settings",   icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -84,15 +84,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         className="sidebar"
         style={{
           width: 240,
-          background: "linear-gradient(180deg, #1e3a8a 0%, #831843 50%, #1e3a8a 100%)",
+          background: "#1e293b",
           display: "flex", flexDirection: "column", flexShrink: 0,
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 100,
-          boxShadow: "4px 0 20px rgba(0,0,0,0.4)",
+          boxShadow: "4px 0 20px rgba(0,0,0,0.15)",
           transition: "transform 0.25s ease",
         }}
       >
         {/* Logo Section - Larger BC Logo */}
-        <div style={{ padding: "32px 20px 24px", borderBottom: "1px solid rgba(255,255,255,0.12)", textAlign: "center" }}>
+        <div style={{ padding: "32px 20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
           {/* Close button (hamburger) - visible on mobile */}
           <button
             className="sidebar-close"
@@ -101,8 +101,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               position: "absolute",
               top: 16,
               right: 16,
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: 8,
               width: 32,
               height: 32,
@@ -114,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               fontSize: 18,
             }}
           >
-            ✕
+            <X size={18} />
           </button>
 
           {/* Large BC Logo Circle */}
@@ -126,9 +126,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             alignItems: "center",
             justifyContent: "center",
             margin: "0 auto 16px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
             overflow: "hidden",
-            border: "02px solid #f8c22e",
+            border: "3px solid rgba(59, 130, 246, 0.3)",
           }}>
             <img 
               src="/bc-logo.png?v=2" 
@@ -166,12 +166,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Nav links */}
-        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", overflowX: "hidden" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", padding: "0 10px", marginBottom: 8 }}>
-            Navigation
-          </div>
+        <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", overflowX: "hidden" }}>
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
+            const IconComponent = item.icon;
             return (
               <Link
                 key={item.href}
@@ -179,27 +177,70 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setSidebarOpen(false)}
                 style={{
                   display: "flex", alignItems: "center", gap: 12,
-                  padding: "10px 12px", borderRadius: 10, textDecoration: "none",
-                  background: active ? "rgba(248, 194, 46, 0.15)" : "transparent",
-                  color: active ? "#f8c22e" : "rgba(255,255,255,0.7)",
+                  padding: "11px 14px", borderRadius: 10, textDecoration: "none",
+                  background: active ? "rgba(59, 130, 246, 0.12)" : "transparent",
+                  color: active ? "#60a5fa" : "rgba(255,255,255,0.65)",
                   fontWeight: active ? 700 : 500, fontSize: 14,
                   transition: "all 0.15s", position: "relative",
-                  boxShadow: active ? "0 4px 12px rgba(248, 194, 46, 0.2)" : "none",
-                  border: active ? "1px solid rgba(248, 194, 46, 0.3)" : "1px solid transparent",
+                  border: active ? "1px solid rgba(59, 130, 246, 0.2)" : "1px solid transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                    e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "rgba(255,255,255,0.65)";
+                  }
                 }}
               >
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+                <IconComponent size={18} strokeWidth={2} style={{ flexShrink: 0 }} />
                 <span>{item.label}</span>
                 {active && (
                   <div style={{
                     position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-                    width: 4, height: 24, background: "#f8c22e", borderRadius: "4px 0 0 4px",
+                    width: 3, height: 20, background: "#60a5fa", borderRadius: "4px 0 0 4px",
                   }} />
                 )}
               </Link>
             );
           })}
         </nav>
+
+        {/* Logout button at bottom */}
+        <button
+          onClick={handleLogout}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "12px 16px",
+            margin: "12px",
+            borderRadius: 10,
+            background: "rgba(239, 68, 68, 0.1)",
+            border: "1px solid rgba(239, 68, 68, 0.2)",
+            color: "#ef4444",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer",
+            transition: "all 0.15s",
+            textDecoration: "none",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)";
+            e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
+            e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.2)";
+          }}
+        >
+          <LogOut size={18} strokeWidth={2} />
+          <span>Logout</span>
+        </button>
 
         <div style={{ padding: "14px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 11, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
           RFID System v1.0
@@ -228,7 +269,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 color: "#374151", flexShrink: 0,
               }}
               aria-label="Toggle menu"
-            >☰</button>
+            >
+              <Menu size={22} />
+            </button>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7280", minWidth: 0 }}>
               <span style={{ fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>Dashboard</span>
               {pathname !== "/dashboard" && (
@@ -245,7 +288,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Right: search + bell + user */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <form onSubmit={handleSearch} className="header-search" style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#9ca3af" }}>🔍</span>
+              <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -262,8 +305,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
                 background: "#f3f4f6", border: "1px solid #e5e7eb",
-                display: "grid", placeItems: "center", fontSize: 16, cursor: "pointer",
-              }}>🔔</div>
+                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+              }}>
+                <Bell size={18} />
+              </div>
               {notifCount > 0 && (
                 <div style={{
                   position: "absolute", top: -4, right: -4,
@@ -286,7 +331,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <div style={{
                   width: 28, height: 28, borderRadius: 8,
-                  background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
                   display: "grid", placeItems: "center",
                   color: "white", fontWeight: 800, fontSize: 11, flexShrink: 0,
                 }}>{initials}</div>
@@ -309,17 +354,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div style={{ fontSize: 12, color: "#9ca3af", textTransform: "capitalize" }}>{user.role}</div>
                   </div>
                   <Link href="/dashboard/settings" onClick={() => setShowUser(false)}
-                    style={{ display: "block", padding: "10px 16px", fontSize: 13, color: "#374151", textDecoration: "none", fontWeight: 500 }}>
-                    ⚙️ Settings
+                    style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", fontSize: 13, color: "#374151", textDecoration: "none", fontWeight: 500 }}>
+                    <Settings size={16} /> Settings
                   </Link>
-                  <button onClick={handleLogout}
-                    style={{
-                      width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13,
-                      color: "#dc2626", fontWeight: 700, background: "none", border: "none",
-                      cursor: "pointer", borderTop: "1px solid #f3f4f6",
-                    }}>
-                    ← Logout
-                  </button>
                 </div>
               )}
             </div>

@@ -7,6 +7,7 @@ import { isAuthenticated, getUser } from "@/lib/auth";
 import { useStats } from "@/hooks/useStats";
 import { useStudents } from "@/hooks/useStudents";
 import { useAttendance } from "@/hooks/useAttendance";
+import { Users, Calendar, CheckCircle, Radio, ClipboardList, UserCheck, MonitorPlay, BarChart3, Settings } from "lucide-react";
 import styles from "./styles.module.css";
 
 // ── Live clock ──────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ export default function DashboardPage() {
     : "";
 
   const user = typeof window !== "undefined" ? getUser() : null;
-  const greeting = user?.name ? `Good day, ${user.name} 👋` : "Good day 👋";
+  const greeting = user?.name ? `Good day, ${user.name}` : "Good day";
 
   useEffect(() => {
     if (!isAuthenticated()) router.push("/login");
@@ -122,7 +123,7 @@ export default function DashboardPage() {
               {
                 label: "Total Students",
                 value: studentsQuery.isLoading ? null : totalStudents,
-                icon: "👥",
+                icon: <Users size={24} />,
                 subtext: "1-12 this week",
                 color: "#3b82f6",
                 bg: "white",
@@ -131,7 +132,7 @@ export default function DashboardPage() {
               {
                 label: "Present Today",
                 value: statsLoading ? null : presentToday,
-                icon: "📅",
+                icon: <Calendar size={24} />,
                 subtext: `${totalStudents > 0 ? Math.round((presentToday / totalStudents) * 100) : 0}% of total`,
                 color: "#f97316",
                 bg: "white",
@@ -140,7 +141,7 @@ export default function DashboardPage() {
               {
                 label: "Active Tags",
                 value: studentsQuery.isLoading ? null : totalStudents,
-                icon: "✓",
+                icon: <CheckCircle size={24} />,
                 subtext: "All systems online",
                 color: "#3b82f6",
                 bg: "white",
@@ -149,7 +150,7 @@ export default function DashboardPage() {
               {
                 label: "RFID Readers",
                 value: 1,
-                icon: "📡",
+                icon: <Radio size={24} />,
                 subtext: "All systems online",
                 color: "#f97316",
                 bg: "white",
@@ -192,9 +193,10 @@ export default function DashboardPage() {
                   height: 48,
                   borderRadius: "50%",
                   background: i % 2 === 0 ? "linear-gradient(135deg, #3b82f6, #2563eb)" : "linear-gradient(135deg, #f97316, #ea580c)",
-                  display: "grid",
-                  placeItems: "center",
-                  fontSize: 24,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
                   boxShadow: `0 4px 16px ${card.color}40`,
                 }}>
                   {card.icon}
@@ -252,11 +254,11 @@ export default function DashboardPage() {
         marginBottom: 24,
       }}>
         {[
-          { href: "/dashboard/attendance", icon: "📋", label: "Scan Attendance", desc: "Record manually", bgIcon: "#3b82f6" },
-          { href: "/dashboard/students",   icon: "👨‍🎓", label: "Students",  desc: "Manage students", bgIcon: "#8b5cf6" },
-          { href: "/dashboard/monitor",    icon: "📺", label: "Monitor",    desc: "Live gate display", bgIcon: "#3b82f6" },
-          { href: "/dashboard/reports",    icon: "📊", label: "Reports",    desc: "View analytics", bgIcon: "#f97316" },
-          { href: "/dashboard/settings",   icon: "⚙️", label: "Settings",   desc: "System preferences", bgIcon: "#6b7280" },
+          { href: "/dashboard/attendance", icon: <ClipboardList size={24} />, label: "Scan Attendance", desc: "Record manually", bgIcon: "#3b82f6" },
+          { href: "/dashboard/students",   icon: <UserCheck size={24} />, label: "Students",  desc: "Manage students", bgIcon: "#8b5cf6" },
+          { href: "/dashboard/monitor",    icon: <MonitorPlay size={24} />, label: "Monitor",    desc: "Live gate display", bgIcon: "#3b82f6" },
+          { href: "/dashboard/reports",    icon: <BarChart3 size={24} />, label: "Reports",    desc: "View analytics", bgIcon: "#f97316" },
+          { href: "/dashboard/settings",   icon: <Settings size={24} />, label: "Settings",   desc: "System preferences", bgIcon: "#6b7280" },
         ].map((item) => (
           <Link
             key={item.href}
@@ -288,9 +290,10 @@ export default function DashboardPage() {
               height: 52, 
               borderRadius: "50%",
               background: `${item.bgIcon}15`,
-              display: "grid", 
-              placeItems: "center", 
-              fontSize: 24,
+              display: "flex", 
+              alignItems: "center",
+              justifyContent: "center",
+              color: item.bgIcon,
             }}>
               {item.icon}
             </div>
@@ -406,13 +409,6 @@ export default function DashboardPage() {
                     {totalStudents - presentToday} ({totalStudents > 0 ? Math.round(((totalStudents - presentToday) / totalStudents) * 100) : 0}%)
                   </span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#fbbf24" }} />
-                    <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>Excused</span>
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1f2937" }}>0 (0%)</span>
-                </div>
               </div>
             </>
           )}
@@ -440,13 +436,14 @@ export default function DashboardPage() {
             height: 80,
             borderRadius: "50%",
             background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-            display: "grid",
-            placeItems: "center",
-            fontSize: 36,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
             marginBottom: 16,
             boxShadow: "0 4px 20px rgba(59, 130, 246, 0.3)",
           }}>
-            🏫
+            <Users size={40} strokeWidth={2.5} />
           </div>
 
           <h4 style={{ fontSize: 18, fontWeight: 800, color: "#1f2937", margin: "0 0 8px 0" }}>
@@ -680,7 +677,9 @@ function AttendancePanel({
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
-        <h2>📋 Today's Attendance</h2>
+        <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <ClipboardList size={20} /> Today's Attendance
+        </h2>
         <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
           Live · updates every 5s
         </span>
@@ -695,7 +694,19 @@ function AttendancePanel({
                 background: "#d1fae5", borderRadius: 10, padding: "18px 20px",
                 display: "flex", alignItems: "center", gap: 16,
               }}>
-                <div style={{ fontSize: 40 }}>✅</div>
+                <div style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  flexShrink: 0,
+                }}>
+                  <CheckCircle size={32} strokeWidth={2.5} />
+                </div>
                 <div>
                   <div style={{ fontSize: 38, fontWeight: 900, color: "#065f46", lineHeight: 1 }}>
                     {presentCount.toLocaleString()}
@@ -749,7 +760,9 @@ function MainGatePanel({
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>🚪 Main Gate Monitor</h2>
+          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Radio size={20} /> Main Gate Monitor
+          </h2>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
             Live IN / OUT tracking · updates every 5s
           </div>
@@ -777,7 +790,19 @@ function MainGatePanel({
               border: "1px solid #6ee7b7",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 28 }}>🟢</div>
+                <div style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  flexShrink: 0,
+                }}>
+                  <Users size={24} strokeWidth={2.5} />
+                </div>
                 <div>
                   <div style={{ fontSize: 30, fontWeight: 900, color: "#065f46", lineHeight: 1 }}>
                     {enteredToday}
@@ -794,7 +819,19 @@ function MainGatePanel({
               border: "1px solid #fca5a5",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 28 }}>🔴</div>
+                <div style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  flexShrink: 0,
+                }}>
+                  <Users size={24} strokeWidth={2.5} />
+                </div>
                 <div>
                   <div style={{ fontSize: 30, fontWeight: 900, color: "#991b1b", lineHeight: 1 }}>
                     {exitedToday}

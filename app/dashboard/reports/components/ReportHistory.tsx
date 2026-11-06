@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { FileText, Users, Tag, FolderOpen, RefreshCw, Inbox, Download } from "lucide-react";
 import styles from "../../styles.module.css";
 import api from "@/lib/api";
 
@@ -14,10 +15,10 @@ type HistoryRecord = {
 
 type Row = Record<string, unknown>;
 
-const TYPE_META: Record<string, { icon: string; label: string; color: string; bg: string }> = {
-  attendance: { icon: "📋", label: "Attendance", color: "#065f46", bg: "#d1fae5" },
-  students:   { icon: "👨‍🎓", label: "Students",  color: "#1e40af", bg: "#dbeafe" },
-  tags:       { icon: "🏷️", label: "Tags",       color: "#92400e", bg: "#fef3c7" },
+const TYPE_META: Record<string, { Icon: typeof FileText; label: string; color: string; bg: string }> = {
+  attendance: { Icon: FileText, label: "Attendance", color: "#065f46", bg: "#d1fae5" },
+  students:   { Icon: Users, label: "Students",  color: "#1e40af", bg: "#dbeafe" },
+  tags:       { Icon: Tag, label: "Tags",       color: "#92400e", bg: "#fef3c7" },
 };
 
 function timeAgo(iso: string): string {
@@ -78,11 +79,15 @@ export default function ReportHistory({ refreshKey }: { refreshKey?: number }) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>🗂️ Report History</h2>
+          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <FolderOpen size={20} style={{ color: "#3b82f6" }} />
+            Report History
+          </h2>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>Previously generated reports</div>
         </div>
-        <button className={styles.button} onClick={fetchHistory} style={{ fontSize: 12, padding: "5px 12px" }}>
-          ↻ Refresh
+        <button className={styles.button} onClick={fetchHistory} style={{ fontSize: 12, padding: "5px 12px", display: "flex", alignItems: "center", gap: 6 }}>
+          <RefreshCw size={14} />
+          Refresh
         </button>
       </div>
 
@@ -91,22 +96,23 @@ export default function ReportHistory({ refreshKey }: { refreshKey?: number }) {
           <div style={{ color: "#9ca3af", fontSize: 14 }}>Loading history…</div>
         ) : history.length === 0 ? (
           <div style={{ padding: "32px 0", textAlign: "center" }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>📭</div>
+            <Inbox size={48} style={{ color: "#d1d5db", margin: "0 auto 12px" }} />
             <div style={{ fontWeight: 700, color: "#374151", fontSize: 14 }}>No reports yet</div>
             <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 4 }}>Generate your first report using the form.</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 480, overflowY: "auto" }}>
             {history.map(r => {
-              const meta = TYPE_META[r.type] ?? { icon: "📄", label: r.type, color: "#374151", bg: "#f3f4f6" };
+              const meta = TYPE_META[r.type] ?? { Icon: FileText, label: r.type, color: "#374151", bg: "#f3f4f6" };
+              const IconComponent = meta.Icon;
               return (
                 <div key={r.id} style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "12px 14px", background: "#f9fafb",
                   borderRadius: 12, border: "1px solid #f3f4f6", transition: "all 0.15s",
                 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: meta.bg, display: "grid", placeItems: "center", fontSize: 18, flexShrink: 0 }}>
-                    {meta.icon}
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: meta.bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <IconComponent size={20} style={{ color: meta.color }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
@@ -123,12 +129,12 @@ export default function ReportHistory({ refreshKey }: { refreshKey?: number }) {
                     padding: "6px 12px", borderRadius: 8, border: "1px solid #e5e7eb",
                     background: redownloading === r.id ? "#f3f4f6" : "white",
                     cursor: redownloading === r.id ? "not-allowed" : "pointer",
-                    fontSize: 12, fontWeight: 700, color: "#8b3b3b",
-                    display: "flex", alignItems: "center", gap: 4, flexShrink: 0, transition: "all 0.15s",
+                    fontSize: 12, fontWeight: 700, color: "#3b82f6",
+                    display: "flex", alignItems: "center", gap: 6, flexShrink: 0, transition: "all 0.15s",
                   }}>
                     {redownloading === r.id
-                      ? <><span style={{ width: 12, height: 12, border: "2px solid #d1d5db", borderTopColor: "#8b3b3b", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Downloading…</>
-                      : <>⬇️ CSV</>
+                      ? <><span style={{ width: 12, height: 12, border: "2px solid #d1d5db", borderTopColor: "#3b82f6", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Downloading…</>
+                      : <><Download size={14} /> CSV</>
                     }
                   </button>
                 </div>

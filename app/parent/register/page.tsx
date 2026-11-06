@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Radio, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
 import api from "@/lib/api";
 
 export default function ParentRegisterPage() {
@@ -43,7 +44,19 @@ export default function ParentRegisterPage() {
           border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20,
           padding: 40, width: "100%", maxWidth: 400, textAlign: "center",
         }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
+          <div style={{ 
+            width: 80, 
+            height: 80, 
+            borderRadius: "50%", 
+            background: "linear-gradient(135deg, #10b981, #059669)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+            color: "white"
+          }}>
+            <CheckCircle size={40} strokeWidth={2.5} />
+          </div>
           <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 800, margin: "0 0 8px" }}>Registered!</h2>
           <p style={{ color: "rgba(255,255,255,0.6)", margin: "0 0 24px", fontSize: 14 }}>
             Your account is ready. Sign in to monitor your child&apos;s attendance.
@@ -51,8 +64,9 @@ export default function ParentRegisterPage() {
           <button onClick={() => router.push("/parent")}
             style={{
               padding: "12px 32px", borderRadius: 10, fontSize: 15, fontWeight: 700,
-              background: "linear-gradient(135deg,#8b3b3b,#c0504d)", color: "#fff",
+              background: "linear-gradient(135deg,#3b82f6,#2563eb)", color: "#fff",
               border: "none", cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(59, 130, 246, 0.4)",
             }}>
             Go to Login →
           </button>
@@ -71,10 +85,12 @@ export default function ParentRegisterPage() {
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{
           width: 56, height: 56, borderRadius: 14,
-          background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
-          display: "grid", placeItems: "center", fontSize: 28,
-          margin: "0 auto 12px", boxShadow: "0 8px 24px rgba(192,80,77,0.4)",
-        }}>📡</div>
+          background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+          display: "flex", alignItems: "center", justifyContent: "center", color: "white",
+          margin: "0 auto 12px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.4)",
+        }}>
+          <Radio size={28} strokeWidth={2.5} />
+        </div>
         <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 900, margin: "0 0 4px" }}>School RFID</h1>
         <p style={{ color: "rgba(255,255,255,0.6)", margin: 0, fontSize: 13 }}>Parent Registration</p>
       </div>
@@ -91,8 +107,9 @@ export default function ParentRegisterPage() {
         </p>
 
         {error && (
-          <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13 }}>
-            ⚠️ {error}
+          <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertCircle size={16} />
+            {error}
           </div>
         )}
 
@@ -130,8 +147,8 @@ export default function ParentRegisterPage() {
                 }}
               />
               <button type="button" onClick={() => setShowPwd(v => !v)}
-                style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
-                {showPwd ? "🙈" : "👁️"}
+                style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 14, display: "flex", alignItems: "center" }}>
+                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -156,10 +173,10 @@ export default function ParentRegisterPage() {
           <button type="submit" disabled={loading}
             style={{
               padding: "13px", borderRadius: 10, fontSize: 14, fontWeight: 700,
-              background: "linear-gradient(135deg,#8b3b3b,#c0504d)", color: "#fff",
+              background: "linear-gradient(135deg,#3b82f6,#2563eb)", color: "#fff",
               border: "none", cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.7 : 1, marginTop: 4,
-              boxShadow: "0 4px 16px rgba(192,80,77,0.4)",
+              boxShadow: "0 4px 16px rgba(59, 130, 246, 0.4)",
             }}>
             {loading ? "Registering..." : "Create Account →"}
           </button>

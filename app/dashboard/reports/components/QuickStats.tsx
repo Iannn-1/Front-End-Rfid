@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FileText, Users, Radio, Tag } from "lucide-react";
 import styles from "../../styles.module.css";
 import api from "@/lib/api";
 
@@ -19,10 +20,10 @@ type Stats = {
 };
 
 const CARDS = [
-  { key: "attendanceRate",  label: "Attendance Rate",    icon: "📋", color: "#10b981", fmt: (v: number) => `${v}%`,              sub: (s: Stats) => `${s.presentToday} present · ${s.lateToday} late · ${s.absentToday} absent` },
-  { key: "totalStudents",   label: "Total Students",     icon: "👨‍🎓", color: "#3b82f6", fmt: (v: number) => v.toLocaleString(),    sub: (s: Stats) => `${s.activeStudents} active` },
-  { key: "totalScans",      label: "Gate Scans Today",   icon: "📡", color: "#8b3b3b", fmt: (v: number) => v.toLocaleString(),    sub: () => "Main Gate IN/OUT" },
-  { key: "assignedTags",    label: "Assigned Tags",      icon: "🏷️", color: "#f59e0b", fmt: (v: number) => v.toLocaleString(),    sub: (s: Stats) => `of ${s.totalTags} total` },
+  { key: "attendanceRate",  label: "Attendance Rate",    Icon: FileText, color: "#10b981", fmt: (v: number) => `${v}%`,              sub: (s: Stats) => `${s.presentToday} present · ${s.lateToday} late · ${s.absentToday} absent` },
+  { key: "totalStudents",   label: "Total Students",     Icon: Users, color: "#3b82f6", fmt: (v: number) => v.toLocaleString(),    sub: (s: Stats) => `${s.activeStudents} active` },
+  { key: "totalScans",      label: "Gate Scans Today",   Icon: Radio, color: "#3b82f6", fmt: (v: number) => v.toLocaleString(),    sub: () => "Main Gate IN/OUT" },
+  { key: "assignedTags",    label: "Assigned Tags",      Icon: Tag, color: "#f59e0b", fmt: (v: number) => v.toLocaleString(),    sub: (s: Stats) => `of ${s.totalTags} total` },
 ] as const;
 
 export default function QuickStats() {
@@ -50,12 +51,13 @@ export default function QuickStats() {
     <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
       {CARDS.map(c => {
         const val = stats[c.key as keyof Stats] as number;
+        const IconComponent = c.Icon;
         return (
           <div key={c.key} className={styles.card} style={{ overflow: "hidden", position: "relative" }}>
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: c.color }} />
             <div className={styles.cardBody} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: `${c.color}18`, display: "grid", placeItems: "center", fontSize: 22, flexShrink: 0 }}>
-                {c.icon}
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: `${c.color}18`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <IconComponent size={24} style={{ color: c.color }} />
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.5px" }}>{c.label}</div>

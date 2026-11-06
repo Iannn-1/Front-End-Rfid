@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Crown, Shield, Eye, Edit, AlertCircle, EyeOff, Save, CheckCircle, Lock } from "lucide-react";
 import styles from "../../styles.module.css";
 import { getToken } from "@/lib/auth";
 
@@ -12,9 +13,9 @@ type AdminUser = {
 };
 
 const ROLE_META = {
-  superadmin: { label: "Super Admin", bg: "#fee2e2", color: "#991b1b", icon: "👑" },
-  admin:      { label: "Admin",       bg: "#dbeafe", color: "#1e40af", icon: "🛡️" },
-  viewer:     { label: "Viewer",      bg: "#f3f4f6", color: "#374151", icon: "👁️" },
+  superadmin: { label: "Super Admin", bg: "#fee2e2", color: "#991b1b", Icon: Crown },
+  admin:      { label: "Admin",       bg: "#dbeafe", color: "#1e40af", Icon: Shield },
+  viewer:     { label: "Viewer",      bg: "#f3f4f6", color: "#374151", Icon: Eye },
 };
 
 export default function AdminProfile() {
@@ -95,37 +96,40 @@ export default function AdminProfile() {
   if (!profile) return null;
 
   const meta = ROLE_META[profile.role] ?? ROLE_META.viewer;
+  const IconComponent = meta.Icon;
   const initials = profile.name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <>
       {toast && (
-        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#1f2937", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 700, fontSize: 14, zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#1f2937", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 700, fontSize: 14, zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", gap: 8 }}>
+          <CheckCircle size={18} />
           {toast}
         </div>
       )}
 
       <div className={styles.card} style={{ overflow: "hidden" }}>
         {/* Top accent */}
-        <div style={{ height: 4, background: "linear-gradient(90deg,#8b3b3b,#e6c57a)" }} />
+        <div style={{ height: 4, background: "linear-gradient(90deg,#3b82f6,#60a5fa)" }} />
 
         <div className={styles.cardHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             {/* Avatar */}
             <div style={{
               width: 56, height: 56, borderRadius: "50%",
-              background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
+              background: "linear-gradient(135deg,#3b82f6,#60a5fa)",
               display: "grid", placeItems: "center",
               fontSize: 20, fontWeight: 900, color: "white",
-              flexShrink: 0, boxShadow: "0 4px 12px rgba(139,59,59,0.35)",
+              flexShrink: 0, boxShadow: "0 4px 12px rgba(59,130,246,0.35)",
             }}>
               {initials}
             </div>
             <div>
               <h2 style={{ margin: 0 }}>My Profile</h2>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 10px", borderRadius: 999, background: meta.bg, color: meta.color }}>
-                  {meta.icon} {meta.label}
+                <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: meta.bg, color: meta.color, display: "flex", alignItems: "center", gap: 6 }}>
+                  <IconComponent size={14} />
+                  {meta.label}
                 </span>
               </div>
             </div>
@@ -134,9 +138,10 @@ export default function AdminProfile() {
             <button
               className={styles.button}
               onClick={() => setEditing(true)}
-              style={{ fontWeight: 700 }}
+              style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}
             >
-              ✏️ Edit Profile
+              <Edit size={16} />
+              Edit Profile
             </button>
           )}
         </div>
@@ -161,8 +166,9 @@ export default function AdminProfile() {
             /* ── Edit mode ── */
             <form onSubmit={handleSave} style={{ display: "grid", gap: 16 }}>
               {error && (
-                <div style={{ padding: "10px 14px", background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 10, fontSize: 13, color: "#991b1b", fontWeight: 600 }}>
-                  ⚠️ {error}
+                <div style={{ padding: "10px 14px", background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 10, fontSize: 13, color: "#991b1b", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                  <AlertCircle size={16} />
+                  {error}
                 </div>
               )}
 
@@ -179,14 +185,17 @@ export default function AdminProfile() {
 
               {/* Password change section */}
               <div style={{ padding: "14px 16px", background: "#f9fafb", borderRadius: 12, border: "1px solid #f3f4f6" }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#374151", marginBottom: 12 }}>🔒 Change Password <span style={{ fontWeight: 400, color: "#9ca3af" }}>(optional)</span></div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#374151", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <Lock size={16} />
+                  Change Password <span style={{ fontWeight: 400, color: "#9ca3af" }}>(optional)</span>
+                </div>
                 <div style={{ display: "grid", gap: 10 }}>
                   <div>
                     <label style={{ display: "block", fontWeight: 600, fontSize: 12, marginBottom: 5, color: "#6b7280" }}>Current Password</label>
                     <div style={{ position: "relative" }}>
                       <input className={styles.input} type={showPw ? "text" : "password"} value={form.currentPw} onChange={e => setForm(f => ({ ...f, currentPw: e.target.value }))} placeholder="Enter current password" style={{ width: "100%", paddingRight: 40 }} />
-                      <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 13, opacity: 0.5 }}>
-                        {showPw ? "🙈" : "👁️"}
+                      <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}>
+                        {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                   </div>
@@ -211,11 +220,11 @@ export default function AdminProfile() {
                   type="submit"
                   className={styles.button}
                   disabled={saving}
-                  style={{ flex: 1, background: "#8b3b3b", color: "white", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                  style={{ flex: 1, background: "#3b82f6", color: "white", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
                   {saving
                     ? <><span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Saving…</>
-                    : "💾 Save Changes"
+                    : <><Save size={16} /> Save Changes</>
                   }
                 </button>
               </div>

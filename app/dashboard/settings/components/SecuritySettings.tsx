@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Lock, CheckCircle } from "lucide-react";
 import styles from "../../styles.module.css";
 
 type SecurityConfig = {
@@ -80,7 +81,10 @@ export default function SecuritySettings() {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>Security Settings</h2>
+          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Lock size={20} style={{ color: "#3b82f6" }} />
+            Security Settings
+          </h2>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
             Configure authentication and access control
           </div>
@@ -235,13 +239,14 @@ export default function SecuritySettings() {
               className={styles.button}
               onClick={handleSave}
               disabled={saving}
-              style={{ background: "#8b3b3b", color: "white" }}
+              style={{ background: "#3b82f6", color: "white", fontWeight: 700 }}
             >
               {saving ? "Saving..." : "Save Settings"}
             </button>
             {saved && (
-              <span style={{ color: "#10b981", fontSize: 14, display: "flex", alignItems: "center" }}>
-                ✓ Settings saved successfully
+              <span style={{ color: "#10b981", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                <CheckCircle size={16} />
+                Settings saved successfully
               </span>
             )}
           </div>

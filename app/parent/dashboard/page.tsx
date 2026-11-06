@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Radio, AlertCircle, CheckCircle, Home, Clock, Calendar, LogOut } from "lucide-react";
 import axios from "axios";
 
 interface StudentInfo {
@@ -114,9 +115,11 @@ export default function ParentDashboardPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 40, height: 40, borderRadius: 10,
-            background: "linear-gradient(135deg,#8b3b3b,#c0504d)",
-            display: "grid", placeItems: "center", fontSize: 20,
-          }}>📡</div>
+            background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+            display: "flex", alignItems: "center", justifyContent: "center", color: "white",
+          }}>
+            <Radio size={20} strokeWidth={2.5} />
+          </div>
           <div>
             <div style={{ color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>School RFID</div>
             <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Parent Portal</div>
@@ -124,10 +127,11 @@ export default function ParentDashboardPage() {
         </div>
         <button onClick={handleLogout}
           style={{
-            background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)",
+            background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)",
             color: "#fff", padding: "7px 14px", borderRadius: 8, fontSize: 13,
-            fontWeight: 600, cursor: "pointer",
+            fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
           }}>
+          <LogOut size={14} />
           Log Out
         </button>
       </header>
@@ -140,8 +144,9 @@ export default function ParentDashboardPage() {
         )}
 
         {error && (
-          <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 16, color: "#dc2626", fontSize: 14, marginBottom: 16 }}>
-            ⚠️ {error}
+          <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 16, color: "#dc2626", fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertCircle size={18} />
+            {error}
           </div>
         )}
 
@@ -149,8 +154,8 @@ export default function ParentDashboardPage() {
           <>
             {/* Greeting */}
             <div style={{ marginBottom: 20 }}>
-              <h2 style={{ color: "#8b3b3b", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>
-                Hello, {parent?.name?.split(" ")[0]}! 👋
+              <h2 style={{ color: "#1f2937", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>
+                Hello, {parent?.name?.split(" ")[0]}!
               </h2>
               <p style={{ color: "#475569", fontSize: 14, margin: 0 }}>
                 Your child: <strong>{student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</strong>
@@ -192,14 +197,37 @@ export default function ParentDashboardPage() {
                 padding: "12px 16px", borderRadius: 10, fontSize: 16, fontWeight: 700,
                 background: currentStatus === "IN" ? "#d1fae5" : currentStatus === "OUT" ? "#fee2e2" : "#f3f4f6",
                 color: currentStatus === "IN" ? "#065f46" : currentStatus === "OUT" ? "#991b1b" : "#6b7280",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}>
-                {currentStatus === "IN" ? "✅ Currently Inside School" : currentStatus === "OUT" ? "🏠 Left School" : "⏳ No scan today yet"}
+                {currentStatus === "IN" && (
+                  <>
+                    <CheckCircle size={20} strokeWidth={2.5} />
+                    Currently Inside School
+                  </>
+                )}
+                {currentStatus === "OUT" && (
+                  <>
+                    <Home size={20} strokeWidth={2.5} />
+                    Left School
+                  </>
+                )}
+                {!currentStatus && (
+                  <>
+                    <Clock size={20} strokeWidth={2.5} />
+                    No scan today yet
+                  </>
+                )}
               </div>
             </div>
 
             {/* Weekly attendance */}
             <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#1f2937", marginBottom: 16 }}>📅 Weekly Attendance</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#1f2937", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <Calendar size={18} />
+                Weekly Attendance
+              </div>
 
               {days.length === 0 ? (
                 <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "20px 0" }}>No attendance records in the last 7 days.</p>

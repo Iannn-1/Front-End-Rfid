@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX, Maximize, User, Zap } from 'lucide-react';
 import { useAttendance } from '@/hooks/useAttendance';
 import { AttendanceLogWithStudent, Student } from '@/types';
 
@@ -335,7 +336,11 @@ export default function MonitorPage() {
               transition: 'all 0.2s',
             }}
           >
-            <span>{soundEnabled ? '🔔 Sound ON' : '🔕 Muted'}</span>
+            {soundEnabled ? (
+              <><Volume2 size={16} /> Sound ON</>
+            ) : (
+              <><VolumeX size={16} /> Muted</>
+            )}
           </button>
 
           {/* Fullscreen Toggle */}
@@ -353,7 +358,7 @@ export default function MonitorPage() {
               transition: 'all 0.2s',
             }}
           >
-            {isFullscreen ? 'Exit Fullscreen' : '⛶ Fullscreen'}
+            {isFullscreen ? 'Exit Fullscreen' : <><Maximize size={16} /> Fullscreen</>}
           </button>
 
           {/* Live Status Badge */}
@@ -454,7 +459,7 @@ export default function MonitorPage() {
                   alignItems: 'center',
                   gap: 8,
                 }}>
-                  <span style={{ fontSize: 56 }}>👤</span>
+                  <User size={56} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
                   <span style={{ fontSize: 13, fontWeight: 600 }}>Tap RFID Card</span>
                 </div>
               )}
@@ -506,7 +511,7 @@ export default function MonitorPage() {
                   boxShadow: `0 0 16px ${latest.status === 'IN' ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'}`,
                   letterSpacing: 1,
                 }}>
-                  {latest.status === 'IN' ? '✓ CHECKED IN' : '← CHECKED OUT'}
+                  {latest.status === 'IN' ? 'CHECKED IN' : 'CHECKED OUT'}
                 </div>
               )}
             </div>
@@ -655,8 +660,9 @@ export default function MonitorPage() {
         <span>
           Total Scans Today: <strong style={{ color: '#f8c22e', fontSize: 14 }}>{logs.length}</strong>
         </span>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-          ⚡ Auto-syncing real-time RFID reader logs
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', display: "flex", alignItems: "center", gap: 4 }}>
+          <Zap size={14} />
+          Auto-syncing real-time RFID reader logs
         </span>
         <span>
           Checked In: <strong style={{ color: '#10b981', fontSize: 14 }}>{logs.filter(l => l.status === 'IN').length}</strong>

@@ -1,26 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { FileText, Users, Tag, Eye, Download, AlertCircle, BarChart3 } from "lucide-react";
 import styles from "../../styles.module.css";
 import api from "@/lib/api";
 
 type ReportType = "attendance" | "students" | "tags";
 type Row = Record<string, string | number | null>;
 
-const REPORT_META: Record<ReportType, { label: string; icon: string; desc: string }> = {
+const REPORT_META: Record<ReportType, { label: string; icon: any; desc: string }> = {
   attendance: {
     label: "Attendance Report",
-    icon: "📋",
+    icon: FileText,
     desc: "Daily attendance records with check-in times, status, and level breakdown.",
   },
   students: {
     label: "Student Directory",
-    icon: "👨‍🎓",
+    icon: Users,
     desc: "Full student roster with level, grade, section, tag assignment, and status.",
   },
   tags: {
     label: "RFID Tag Inventory",
-    icon: "🏷️",
+    icon: Tag,
     desc: "All RFID tags with assignment status, owner, issue date, and last seen.",
   },
 };
@@ -89,7 +90,10 @@ export default function ReportGenerator({ onGenerated }: { onGenerated?: () => v
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>📊 Generate Report</h2>
+          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <BarChart3 size={20} />
+            Generate Report
+          </h2>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>Build and export custom reports</div>
         </div>
       </div>
@@ -99,21 +103,24 @@ export default function ReportGenerator({ onGenerated }: { onGenerated?: () => v
 
           {/* Report type selector */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-            {(Object.entries(REPORT_META) as [ReportType, typeof REPORT_META.attendance][]).map(([k, v]) => (
-              <button key={k} onClick={() => { setReportType(k); setPreview(null); }} style={{
-                padding: "10px 8px", borderRadius: 10,
-                border: reportType === k ? "2px solid #8b3b3b" : "1px solid #e5e7eb",
-                background: reportType === k ? "#fff5f5" : "#f9fafb",
-                cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, transition: "all 0.15s",
-              }}>
-                <span style={{ fontSize: 20 }}>{v.icon}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: reportType === k ? "#8b3b3b" : "#374151" }}>{v.label}</span>
-              </button>
-            ))}
+            {(Object.entries(REPORT_META) as [ReportType, typeof REPORT_META.attendance][]).map(([k, v]) => {
+              const IconComponent = v.icon;
+              return (
+                <button key={k} onClick={() => { setReportType(k); setPreview(null); }} style={{
+                  padding: "10px 8px", borderRadius: 10,
+                  border: reportType === k ? "2px solid #3b82f6" : "1px solid #e5e7eb",
+                  background: reportType === k ? "#eff6ff" : "#f9fafb",
+                  cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, transition: "all 0.15s",
+                }}>
+                  <IconComponent size={24} strokeWidth={2} color={reportType === k ? "#3b82f6" : "#6b7280"} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: reportType === k ? "#3b82f6" : "#374151" }}>{v.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Description */}
-          <div style={{ padding: "10px 12px", background: "#f9fafb", borderRadius: 8, fontSize: 13, color: "#6b7280", borderLeft: "3px solid #8b3b3b" }}>
+          <div style={{ padding: "10px 12px", background: "#eff6ff", borderRadius: 8, fontSize: 13, color: "#1e40af", borderLeft: "3px solid #3b82f6" }}>
             {meta.desc}
           </div>
 
@@ -156,20 +163,21 @@ export default function ReportGenerator({ onGenerated }: { onGenerated?: () => v
           </div>
 
           {error && (
-            <div style={{ padding: "10px 12px", background: "#fee2e2", borderRadius: 8, fontSize: 13, color: "#991b1b", fontWeight: 600 }}>
-              ⚠️ {error}
+            <div style={{ padding: "10px 12px", background: "#fee2e2", borderRadius: 8, fontSize: 13, color: "#991b1b", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+              <AlertCircle size={16} />
+              {error}
             </div>
           )}
 
           {/* Action buttons */}
           <div style={{ display: "flex", gap: 10 }}>
             <button className={styles.button} onClick={() => generate(false)} disabled={generating}
-              style={{ flex: 1, background: "#f3f4f6", color: "#374151", fontWeight: 700 }}>
-              {generating ? "Loading…" : "👁️ Preview"}
+              style={{ flex: 1, background: "#f3f4f6", color: "#374151", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              {generating ? "Loading…" : <><Eye size={16} /> Preview</>}
             </button>
             <button className={styles.button} onClick={() => generate(true)} disabled={generating}
-              style={{ flex: 1, background: "#8b3b3b", color: "white", fontWeight: 700 }}>
-              {generating ? "Generating…" : "⬇️ Export CSV"}
+              style={{ flex: 1, background: "#3b82f6", color: "white", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              {generating ? "Generating…" : <><Download size={16} /> Export CSV</>}
             </button>
           </div>
 
@@ -181,8 +189,9 @@ export default function ReportGenerator({ onGenerated }: { onGenerated?: () => v
                   Preview — showing {preview.length} of {previewTotal} rows
                 </span>
                 <button onClick={() => generate(true)}
-                  style={{ fontSize: 12, color: "#8b3b3b", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>
-                  ⬇️ Download all {previewTotal} rows
+                  style={{ fontSize: 12, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                  <Download size={14} />
+                  Download all {previewTotal} rows
                 </button>
               </div>
               <div className={styles.tableWrapper} style={{ maxHeight: 260, overflowY: "auto" }}>
