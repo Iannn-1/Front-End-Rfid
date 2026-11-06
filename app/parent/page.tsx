@@ -25,7 +25,20 @@ export default function ParentLoginPage() {
       localStorage.setItem("parent_user", JSON.stringify(parent));
       router.push("/parent/dashboard");
     } catch (err: any) {
-      setError(err?.response?.data?.error ?? "Login failed");
+      const errorCode = err?.response?.data?.code;
+      const errorMessage = err?.response?.data?.error ?? "Login failed";
+      
+      // Check if email not verified
+      if (errorCode === "EMAIL_NOT_VERIFIED") {
+        sessionStorage.setItem("pendingVerificationEmail", email);
+        setError("Email not verified. Redirecting to verification...");
+        setTimeout(() => {
+          router.push("/parent/verify");
+        }, 1500);
+        return;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

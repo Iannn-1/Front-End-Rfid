@@ -22,7 +22,9 @@ export default function ParentRegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      await api.post("/parents/register", form);
+      const response = await api.post("/parents/register", form);
+      // Store email for verification page
+      sessionStorage.setItem("pendingVerificationEmail", form.email);
       setSuccess(true);
     } catch (err: any) {
       setError(err?.response?.data?.error ?? "Registration failed");
@@ -57,18 +59,19 @@ export default function ParentRegisterPage() {
           }}>
             <CheckCircle size={40} strokeWidth={2.5} />
           </div>
-          <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 800, margin: "0 0 8px" }}>Registered!</h2>
+          <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 800, margin: "0 0 8px" }}>Check Your Email!</h2>
           <p style={{ color: "rgba(255,255,255,0.6)", margin: "0 0 24px", fontSize: 14 }}>
-            Your account is ready. Sign in to monitor your child&apos;s attendance.
+            We&apos;ve sent a 6-digit verification code to <strong style={{ color: "#fff" }}>{form.email}</strong>. 
+            Please check your email and verify your account.
           </p>
-          <button onClick={() => router.push("/parent")}
+          <button onClick={() => router.push("/parent/verify")}
             style={{
               padding: "12px 32px", borderRadius: 10, fontSize: 15, fontWeight: 700,
               background: "linear-gradient(135deg,#3b82f6,#2563eb)", color: "#fff",
               border: "none", cursor: "pointer",
               boxShadow: "0 4px 16px rgba(59, 130, 246, 0.4)",
             }}>
-            Go to Login →
+            Verify Email →
           </button>
         </div>
       </div>
