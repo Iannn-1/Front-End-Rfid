@@ -127,6 +127,12 @@ export default function ParentLoginPage() {
           </button>
         </form>
 
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <Link href="/parent/forgot-password" style={{ color: "#3b82f6", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+            Forgot password?
+          </Link>
+        </div>
+
         <p style={{ textAlign: "center", marginTop: 20, color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
           Don&apos;t have an account?{" "}
           <Link href="/parent/register" style={{ color: "#f8c22e", fontWeight: 700, textDecoration: "none" }}>Register here</Link>
