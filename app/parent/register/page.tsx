@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Radio, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import { Radio, Eye, EyeOff, AlertCircle, CheckCircle, Plus, X } from "lucide-react";
 import api from "@/lib/api";
 
 export default function ParentRegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", rfid_tag_uid: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
+  const [rfidTags, setRfidTags] = useState<string[]>([""]);
   const [error, setError]     = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,24 +21,51 @@ export default function ParentRegisterPage() {
     const rfidFromUrl = searchParams.get('rfid');
     const emailFromUrl = searchParams.get('email');
     
-    if (rfidFromUrl || emailFromUrl) {
-      setForm(f => ({
-        ...f,
-        rfid_tag_uid: rfidFromUrl || f.rfid_tag_uid,
-        email: emailFromUrl || f.email,
-      }));
+    if (rfidFromUrl) {
+      setRfidTags([rfidFromUrl]);
+    }
+    if (emailFromUrl) {
+      setForm(f => ({ ...f, email: emailFromUrl }));
     }
   }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const handleRfidChange = (index: number, value: string) => {
+    const newTags = [...rfidTags];
+    newTags[index] = value;
+    setRfidTags(newTags);
+  };
+
+  const addRfidTag = () => {
+    setRfidTags([...rfidTags, ""]);
+  };
+
+  const removeRfidTag = (index: number) => {
+    if (rfidTags.length > 1) {
+      setRfidTags(rfidTags.filter((_, i) => i !== index));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Filter out empty RFID tags
+    const validTags = rfidTags.filter(tag => tag.trim() !== "");
+    
+    if (validTags.length === 0) {
+      setError("At least one RFID tag is required");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await api.post("/parents/register", form);
+      const response = await api.post("/parents/register", {
+        ...form,
+        rfid_tags: validTags,
+      });
       // Store email for verification page
       sessionStorage.setItem("pendingVerificationEmail", form.email);
       setSuccess(true);
@@ -121,7 +149,7 @@ export default function ParentRegisterPage() {
       }}>
         <h2 style={{ color: "#fff", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>Create account</h2>
         <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: "0 0 20px" }}>
-          You&apos;ll need your child&apos;s RFID Tag ID — found on their student card.
+          You&apos;ll need your child&apos;s RFID Tag ID — found on their student card. You can add multiple children.
         </p>
 
         {error && (
@@ -171,20 +199,71 @@ export default function ParentRegisterPage() {
             </div>
           </div>
 
-          {/* RFID Tag */}
+          {/* RFID Tags */}
           <div>
-            <label style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 600, display: "block", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.5px" }}>Child&apos;s RFID Tag ID *</label>
-            <input
-              type="text" value={form.rfid_tag_uid} onChange={set("rfid_tag_uid")} required
-              placeholder="e.g. 2026-7857"
+            <label style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 600, display: "block", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              Children&apos;s RFID Tag IDs *
+            </label>
+            {rfidTags.map((tag, index) => (
+              <div key={index} style={{ display: "flex", gap: 8, marginBottom: index < rfidTags.length - 1 ? 8 : 0 }}>
+                <input
+                  type="text" 
+                  value={tag} 
+                  onChange={(e) => handleRfidChange(index, e.target.value)} 
+                  required={index === 0}
+                  placeholder={index === 0 ? "e.g. 2026-7857" : "Additional child (optional)"}
+                  style={{
+                    flex: 1,
+                    padding: "11px 13px", borderRadius: 10, fontSize: 13,
+                    border: "1px solid rgba(248,194,46,0.4)", background: "rgba(248,194,46,0.05)",
+                    color: "#f8c22e", outline: "none", boxSizing: "border-box", fontFamily: "monospace",
+                  }}
+                />
+                {rfidTags.length > 1 && (
+                  <button 
+                    type="button" 
+                    onClick={() => removeRfidTag(index)}
+                    style={{
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: 10, 
+                      background: "rgba(239,68,68,0.15)",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                      color: "#f87171",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addRfidTag}
               style={{
-                width: "100%", padding: "11px 13px", borderRadius: 10, fontSize: 13,
-                border: "1px solid rgba(248,194,46,0.4)", background: "rgba(248,194,46,0.05)",
-                color: "#f8c22e", outline: "none", boxSizing: "border-box", fontFamily: "monospace",
-              }}
-            />
+                marginTop: 8,
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                background: "rgba(248,194,46,0.1)",
+                border: "1px solid rgba(248,194,46,0.3)",
+                color: "#f8c22e",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                width: "100%",
+                justifyContent: "center",
+              }}>
+              <Plus size={14} />
+              Add Another Child
+            </button>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, margin: "5px 0 0" }}>
-              This must match a registered student tag. The school will provide this ID.
+              RFID tags must match registered students. The school will provide these IDs.
             </p>
           </div>
 

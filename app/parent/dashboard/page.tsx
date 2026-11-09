@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, AlertCircle, CheckCircle, Home, Clock, Calendar, LogOut } from "lucide-react";
+import { Radio, AlertCircle, CheckCircle, Home, Clock, Calendar, LogOut, ChevronDown } from "lucide-react";
 import axios from "axios";
 
 interface StudentInfo {
@@ -16,6 +16,8 @@ interface StudentInfo {
   student_level: string;
   course?: string;
   profile_photo?: string;
+  rfid_tag_uid: string;
+  is_primary?: boolean;
 }
 
 interface AttendanceLog {
@@ -56,40 +58,119 @@ function groupByDay(logs: AttendanceLog[]) {
 export default function ParentDashboardPage() {
   const router = useRouter();
   const [parent, setParent]   = useState<ParentUser | null>(null);
-  const [student, setStudent] = useState<StudentInfo | null>(null);
+  const [children, setChildren] = useState<StudentInfo[]>([]);
+  const [selectedChild, setSelectedChild] = useState<StudentInfo | null>(null);
   const [currentStatus, setCurrentStatus] = useState<"IN" | "OUT" | null>(null);
   const [logs, setLogs]       = useState<AttendanceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchChildren = useCallback(async () => {
     const token = localStorage.getItem("parent_token");
-    const storedParent = localStorage.getItem("parent_user");
-    if (!token || !storedParent) { router.push("/parent"); return; }
+    if (!token) return [];
 
-    setParent(JSON.parse(storedParent));
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
-      const res = await axios.get(`${apiUrl}/parents/child`, {
+      const res = await axios.get(`${apiUrl}/parents/children`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const { student, currentStatus, logs } = res.data.data;
-      setStudent(student);
-      setCurrentStatus(currentStatus);
-      setLogs(logs);
+      return res.data.data.children || [];
     } catch (err: any) {
-      if (err?.response?.status === 401) { router.push("/parent"); return; }
-      setError(err?.response?.data?.error ?? "Failed to load data");
+      console.error("Failed to fetch children:", err);
+      return [];
+    }
+  }, []);
+
+  const fetchChildData = useCallback(async (rfidTag: string) => {
+    const token = localStorage.getItem("parent_token");
+    if (!token) return null;
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
+      const res = await axios.get(`${apiUrl}/parents/child?rfid_tag_uid=${rfidTag}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.data;
+    } catch (err: any) {
+      console.error("Failed to fetch child data:", err);
+      return null;
+    }
+  }, []);
+
+  const loadInitialData = useCallback(async () => {
+    const token = localStorage.getItem("parent_token");
+    const storedParent = localStorage.getItem("parent_user");
+    if (!token || !storedParent) { 
+      router.push("/parent"); 
+      return; 
+    }
+
+    setParent(JSON.parse(storedParent));
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch all children
+      const childrenList = await fetchChildren();
+      setChildren(childrenList);
+
+      if (childrenList.length === 0) {
+        setError("No children found in your account");
+        setLoading(false);
+        return;
+      }
+
+      // Select primary child or first child
+      const primary = childrenList.find((c: StudentInfo) => c.is_primary);
+      const childToSelect = primary || childrenList[0];
+      
+      // Fetch data for selected child
+      const childData = await fetchChildData(childToSelect.rfid_tag_uid);
+      if (childData) {
+        setSelectedChild(childData.student);
+        setCurrentStatus(childData.currentStatus);
+        setLogs(childData.logs);
+      }
+    } catch (err: any) {
+      if (err?.response?.status === 401) { 
+        router.push("/parent"); 
+        return; 
+      }
+      setError("Failed to load data");
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, fetchChildren, fetchChildData]);
+
+  const handleChildSelect = async (child: StudentInfo) => {
+    setShowDropdown(false);
+    if (child.rfid_tag_uid === selectedChild?.rfid_tag_uid) return;
+
+    setLoading(true);
+    const childData = await fetchChildData(child.rfid_tag_uid);
+    if (childData) {
+      setSelectedChild(childData.student);
+      setCurrentStatus(childData.currentStatus);
+      setLogs(childData.logs);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    fetchData();
-    const id = setInterval(fetchData, 30_000);
+    loadInitialData();
+    const id = setInterval(() => {
+      if (selectedChild) {
+        fetchChildData(selectedChild.rfid_tag_uid).then(childData => {
+          if (childData) {
+            setCurrentStatus(childData.currentStatus);
+            setLogs(childData.logs);
+          }
+        });
+      }
+    }, 30_000);
     return () => clearInterval(id);
-  }, [fetchData]);
+  }, [loadInitialData, selectedChild, fetchChildData]);
 
   const handleLogout = () => {
     localStorage.removeItem("parent_token");
@@ -125,15 +206,109 @@ export default function ParentDashboardPage() {
             <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Parent Portal</div>
           </div>
         </div>
-        <button onClick={handleLogout}
-          style={{
-            background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)",
-            color: "#fff", padding: "7px 14px", borderRadius: 8, fontSize: 13,
-            fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-          }}>
-          <LogOut size={14} />
-          Log Out
-        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* Child Selector Dropdown */}
+          {children.length > 1 && selectedChild && (
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                style={{
+                  background: "rgba(255,255,255,0.15)", 
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "#fff", 
+                  padding: "7px 12px", 
+                  borderRadius: 8, 
+                  fontSize: 13,
+                  fontWeight: 600, 
+                  cursor: "pointer", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 8,
+                  minWidth: 150,
+                }}>
+                <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {selectedChild.first_name} {selectedChild.last_name}
+                </span>
+                <ChevronDown size={14} style={{ transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+              </button>
+
+              {showDropdown && (
+                <div style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  right: 0,
+                  background: "#fff",
+                  borderRadius: 10,
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                  minWidth: 200,
+                  overflow: "hidden",
+                  zIndex: 100,
+                }}>
+                  {children.map((child) => (
+                    <button
+                      key={child.rfid_tag_uid}
+                      onClick={() => handleChildSelect(child)}
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        background: child.rfid_tag_uid === selectedChild?.rfid_tag_uid ? "#e8f4f8" : "#fff",
+                        border: "none",
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: child.rfid_tag_uid === selectedChild?.rfid_tag_uid ? 700 : 600,
+                        color: "#1f2937",
+                        transition: "background 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (child.rfid_tag_uid !== selectedChild?.rfid_tag_uid) {
+                          e.currentTarget.style.background = "#f3f4f6";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (child.rfid_tag_uid !== selectedChild?.rfid_tag_uid) {
+                          e.currentTarget.style.background = "#fff";
+                        }
+                      }}>
+                      {child.first_name} {child.last_name}
+                      {child.is_primary && (
+                        <span style={{ 
+                          marginLeft: 8, 
+                          fontSize: 10, 
+                          padding: "2px 6px", 
+                          background: "#fef3c7", 
+                          color: "#92400e", 
+                          borderRadius: 4,
+                          fontWeight: 700,
+                        }}>PRIMARY</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <button onClick={handleLogout}
+            style={{
+              background: "rgba(239, 68, 68, 0.2)", 
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              color: "#fff", 
+              padding: "7px 14px", 
+              borderRadius: 8, 
+              fontSize: 13,
+              fontWeight: 600, 
+              cursor: "pointer", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 6,
+            }}>
+            <LogOut size={14} />
+            Log Out
+          </button>
+        </div>
       </header>
 
       <div style={{ padding: "20px 16px", maxWidth: 600, margin: "0 auto" }}>
@@ -150,7 +325,7 @@ export default function ParentDashboardPage() {
           </div>
         )}
 
-        {!loading && !error && student && (
+        {!loading && !error && selectedChild && (
           <>
             {/* Greeting */}
             <div style={{ marginBottom: 20 }}>
@@ -158,7 +333,8 @@ export default function ParentDashboardPage() {
                 Hello, {parent?.name?.split(" ")[0]}!
               </h2>
               <p style={{ color: "#475569", fontSize: 14, margin: 0 }}>
-                Your child: <strong>{student.name || `${student.last_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</strong>
+                {children.length > 1 ? `Viewing: ` : `Your child: `}
+                <strong>{selectedChild.name || `${selectedChild.last_name}, ${selectedChild.first_name}${selectedChild.middle_name ? ' ' + selectedChild.middle_name : ''}`}</strong>
               </p>
             </div>
 
@@ -167,23 +343,23 @@ export default function ParentDashboardPage() {
               background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
               boxShadow: "0 4px 20px rgba(0,0,0,0.08)", display: "flex", gap: 16, alignItems: "center",
             }}>
-              {student.profile_photo ? (
-                <img src={student.profile_photo} alt={`${student.first_name} ${student.last_name}`}
+              {selectedChild.profile_photo ? (
+                <img src={selectedChild.profile_photo} alt={`${selectedChild.first_name} ${selectedChild.last_name}`}
                   style={{ width: 70, height: 70, borderRadius: "50%", objectFit: "cover", border: "3px solid #e5e7eb", flexShrink: 0 }} />
               ) : (
                 <div style={{
                   width: 70, height: 70, borderRadius: "50%", background: "#e5e7eb",
                   display: "grid", placeItems: "center", fontSize: 24, fontWeight: 800, flexShrink: 0,
                 }}>
-                  {student.first_name[0]}{student.last_name[0]}
+                  {selectedChild.first_name[0]}{selectedChild.last_name[0]}
                 </div>
               )}
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 17, color: "#1f2937", marginBottom: 4 }}>
-                  {student.last_name}, {student.first_name} {student.middle_name || ''}
+                  {selectedChild.last_name}, {selectedChild.first_name} {selectedChild.middle_name || ''}
                 </div>
-                <div style={{ fontSize: 13, color: "#6b7280" }}>{student.student_level} · {student.grade_level} · {student.section}</div>
-                {student.course && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{student.course}</div>}
+                <div style={{ fontSize: 13, color: "#6b7280" }}>{selectedChild.student_level} · {selectedChild.grade_level} · {selectedChild.section}</div>
+                {selectedChild.course && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{selectedChild.course}</div>}
               </div>
             </div>
 
@@ -245,9 +421,7 @@ export default function ParentDashboardPage() {
                       {days.map((day) => (
                         <tr key={day.date} style={{ borderBottom: "1px solid #f3f4f6" }}>
                           <td style={{ padding: "10px 12px", color: "#1f2937", fontWeight: 600, whiteSpace: "nowrap" }}>
-                            <a href="#" style={{ color: "#1d4ed8", textDecoration: "underline", cursor: "pointer" }}>
-                              {formatDate(new Date(day.date).toISOString())}
-                            </a>
+                            {formatDate(new Date(day.date).toISOString())}
                           </td>
                           <td style={{ padding: "10px 12px", color: "#374151", whiteSpace: "nowrap" }}>
                             {day.timeIn ? formatTime(day.timeIn) : "-- : --"}
