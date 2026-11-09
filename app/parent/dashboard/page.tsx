@@ -159,6 +159,8 @@ export default function ParentDashboardPage() {
 
   useEffect(() => {
     loadInitialData();
+    
+    // Set up auto-refresh interval
     const id = setInterval(() => {
       if (selectedChild) {
         fetchChildData(selectedChild.rfid_tag_uid).then(childData => {
@@ -169,8 +171,10 @@ export default function ParentDashboardPage() {
         });
       }
     }, 30_000);
+    
     return () => clearInterval(id);
-  }, [loadInitialData, selectedChild, fetchChildData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("parent_token");
