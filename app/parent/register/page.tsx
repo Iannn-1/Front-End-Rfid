@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Radio, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
@@ -13,6 +13,21 @@ export default function ParentRegisterPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+
+  // Auto-fill form from URL parameters (from email link)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const rfidFromUrl = searchParams.get('rfid');
+    const emailFromUrl = searchParams.get('email');
+    
+    if (rfidFromUrl || emailFromUrl) {
+      setForm(f => ({
+        ...f,
+        rfid_tag_uid: rfidFromUrl || f.rfid_tag_uid,
+        email: emailFromUrl || f.email,
+      }));
+    }
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
