@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, AlertCircle, CheckCircle, Home, Clock, Calendar, LogOut, ChevronDown } from "lucide-react";
+import { AlertCircle, CheckCircle, Home, Clock, Calendar, LogOut, ChevronDown } from "lucide-react";
 import axios from "axios";
 
 interface StudentInfo {
@@ -214,19 +214,16 @@ export default function ParentDashboardPage() {
         gap: isMobile ? 8 : 12,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, minWidth: 0, flex: 1 }}>
-          <div style={{
-            width: isMobile ? 32 : 40, 
-            height: isMobile ? 32 : 40, 
-            borderRadius: 10,
-            background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            color: "white",
-            flexShrink: 0,
-          }}>
-            <Radio size={isMobile ? 16 : 20} strokeWidth={2.5} />
-          </div>
+          <img 
+            src="/bc-logo.png" 
+            alt="BC Logo"
+            style={{
+              width: isMobile ? 32 : 40, 
+              height: isMobile ? 32 : 40,
+              objectFit: "contain",
+              flexShrink: 0,
+            }}
+          />
           {!isMobile && (
             <div>
               <div style={{ color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>School RFID</div>

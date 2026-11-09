@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Radio, Eye, EyeOff, AlertCircle, CheckCircle, Plus, X } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, CheckCircle, Plus, X } from "lucide-react";
 import api from "@/lib/api";
 
 export default function ParentRegisterPage() {
@@ -131,11 +131,20 @@ export default function ParentRegisterPage() {
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{
           width: 56, height: 56, borderRadius: 14,
-          background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-          display: "flex", alignItems: "center", justifyContent: "center", color: "white",
+          background: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 12px", boxShadow: "0 8px 24px rgba(59, 130, 246, 0.4)",
+          padding: 8,
         }}>
-          <Radio size={28} strokeWidth={2.5} />
+          <img 
+            src="/bc-logo.png" 
+            alt="BC Logo"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+            }}
+          />
         </div>
         <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 900, margin: "0 0 4px" }}>School RFID</h1>
         <p style={{ color: "rgba(255,255,255,0.6)", margin: 0, fontSize: 13 }}>Parent Registration</p>
