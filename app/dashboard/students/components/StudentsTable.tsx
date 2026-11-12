@@ -1205,9 +1205,9 @@ export default function StudentsTable() {
                         <button 
                           className={styles.button}
                           onClick={handleDelete}
-                          style={{ background: "#ef4444", color: "white", border: "none" }}
+                          style={{ background: "#f59e0b", color: "white", border: "none" }}
                         >
-                          🗑️ Delete
+                          📦 Archive
                         </button>
                       )}
                     </div>
@@ -1234,9 +1234,9 @@ export default function StudentsTable() {
                     <button 
                       className={styles.button}
                       onClick={handleDelete}
-                      style={{ background: "#ef4444", color: "white", border: "none" }}
+                      style={{ background: "#f59e0b", color: "white", border: "none" }}
                     >
-                      🗑️ Delete
+                      📦 Archive
                     </button>
                     <button 
                       className={styles.button}
@@ -1322,12 +1322,12 @@ export default function StudentsTable() {
             padding: 24,
             boxShadow: "0 20px 60px rgba(0,0,0,0.3)"
           }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>⚠️</div>
-            <h3 style={{ margin: "0 0 12px 0", fontSize: 20, fontWeight: 800, textAlign: "center", color: "#ef4444" }}>
-              Delete Student?
+            <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>📦</div>
+            <h3 style={{ margin: "0 0 12px 0", fontSize: 20, fontWeight: 800, textAlign: "center", color: "#f59e0b" }}>
+              Archive Student?
             </h3>
             <p style={{ margin: "0 0 24px 0", color: "#6b7280", textAlign: "center", fontSize: 14 }}>
-              Are you sure you want to delete <strong>{selectedStudent?.lastName}, {selectedStudent?.firstName}</strong>? This action cannot be undone.
+              Are you sure you want to archive <strong>{selectedStudent?.lastName}, {selectedStudent?.firstName}</strong>? You can restore them later from the Archived section.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
               <button 
@@ -1340,9 +1340,9 @@ export default function StudentsTable() {
               <button 
                 className={styles.button}
                 onClick={confirmDelete}
-                style={{ flex: 1, background: "#ef4444", color: "white", border: "none" }}
+                style={{ flex: 1, background: "#f59e0b", color: "white", border: "none" }}
               >
-                Yes, Delete
+                Yes, Archive
               </button>
             </div>
           </div>
