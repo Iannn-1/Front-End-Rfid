@@ -570,7 +570,7 @@ export default function DashboardPage() {
                                 font-weight: 700;
                                 font-size: 12px;
                               ">
-                                ${(log.Student?.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                ${(log.Student ? (log.Student.first_name?.[0] || '') + (log.Student.last_name?.[0] || '') : 'U').toUpperCase()}
                               </div>
                               <div style="
                                 position: absolute;
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                         fontWeight: 700,
                         fontSize: 12,
                       }}>
-                        {(log.Student?.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                        {(log.Student ? (log.Student.first_name?.[0] || '') + (log.Student.last_name?.[0] || '') : 'U').toUpperCase()}
                       </div>
                     )}
                     {/* Status indicator dot */}
@@ -618,7 +618,9 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {log.Student?.name || 'Unknown'}
+                      {log.Student 
+                        ? (log.Student.name || `${log.Student.last_name}, ${log.Student.first_name}${log.Student.middle_name ? ' ' + log.Student.middle_name.charAt(0) + '.' : ''}`)
+                        : 'Unknown'}
                     </div>
                     <div style={{ fontSize: 11, color: "#9ca3af" }}>
                       {log.Student?.parent_email || 'No email'}
