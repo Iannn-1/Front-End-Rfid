@@ -45,12 +45,13 @@ function formatDate(isoStr: string) {
 
 // Group logs by date, get first IN and last OUT per day
 function groupByDay(logs: AttendanceLog[]) {
-  const map: Record<string, { date: string; timeIn: string | null; timeOut: string | null }> = {};
+  const map: Record<string, { dateStr: string; isoDate: string; timeIn: string | null; timeOut: string | null }> = {};
   for (const log of [...logs].reverse()) {
-    const date = new Date(log.scan_time).toDateString();
-    if (!map[date]) map[date] = { date, timeIn: null, timeOut: null };
-    if (log.status === "IN" && !map[date].timeIn) map[date].timeIn = log.scan_time;
-    if (log.status === "OUT") map[date].timeOut = log.scan_time;
+    const d = new Date(log.scan_time);
+    const dateKey = d.toDateString();
+    if (!map[dateKey]) map[dateKey] = { dateStr: dateKey, isoDate: d.toISOString(), timeIn: null, timeOut: null };
+    if (log.status === "IN" && !map[dateKey].timeIn) map[dateKey].timeIn = log.scan_time;
+    if (log.status === "OUT") map[dateKey].timeOut = log.scan_time;
   }
   return Object.values(map).reverse();
 }
@@ -191,6 +192,10 @@ export default function ParentDashboardPage() {
     router.push("/parent");
   };
 
+  const handleAddChild = () => {
+    router.push("/parent/add-student");
+  };
+
   const days = groupByDay(logs);
 
   return (
@@ -233,8 +238,8 @@ export default function ParentDashboardPage() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 12, flexShrink: 0 }}>
-          {/* Child Selector Dropdown */}
-          {children.length > 1 && selectedChild && (
+          {/* Child Selector Dropdown - Always show if children exist */}
+          {children.length >= 1 && selectedChild && (
             <div style={{ position: "relative" }}>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
@@ -267,7 +272,7 @@ export default function ParentDashboardPage() {
                   background: "#fff",
                   borderRadius: 10,
                   boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                  minWidth: isMobile ? 180 : 200,
+                  minWidth: isMobile ? 200 : 220,
                   overflow: "hidden",
                   zIndex: 100,
                 }}>
@@ -312,6 +317,38 @@ export default function ParentDashboardPage() {
                       )}
                     </button>
                   ))}
+                  {/* Add Another Child button in dropdown */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      handleAddChild();
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: isMobile ? "10px 12px" : "12px 16px",
+                      background: "#fff",
+                      border: "none",
+                      borderTop: "2px solid #e5e7eb",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: isMobile ? 12 : 13,
+                      fontWeight: 600,
+                      color: "#f59e0b",
+                      transition: "background 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#fffbeb";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fff";
+                    }}>
+                    <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700 }}>+</span>
+                    Add Another Child
+                  </button>
                 </div>
               )}
             </div>
@@ -469,9 +506,9 @@ export default function ParentDashboardPage() {
                     </thead>
                     <tbody>
                       {days.map((day) => (
-                        <tr key={day.date} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <tr key={day.dateStr} style={{ borderBottom: "1px solid #f3f4f6" }}>
                           <td style={{ padding: isMobile ? "8px 6px" : "10px 12px", color: "#1f2937", fontWeight: 600, whiteSpace: "nowrap", fontSize: isMobile ? 10 : 13 }}>
-                            {isMobile ? new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : formatDate(new Date(day.date).toISOString())}
+                            {isMobile ? new Date(day.isoDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : formatDate(day.isoDate)}
                           </td>
                           <td style={{ padding: isMobile ? "8px 6px" : "10px 12px", color: "#374151", whiteSpace: "nowrap" }}>
                             {day.timeIn ? formatTime(day.timeIn) : "-- : --"}
