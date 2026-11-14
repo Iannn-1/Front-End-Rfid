@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle, Plus, X } from "lucide-react";
-import api from "@/lib/api";
 
 export default function AddStudentPage() {
   const router = useRouter();
@@ -52,13 +51,22 @@ export default function AddStudentPage() {
       
       // Add each RFID tag as a new student
       for (const tag of validTags) {
-        await api.post(
+        const response = await fetch(
           `${apiUrl}/parents/add-child`,
-          { rfid_tag_uid: tag },
           {
-            headers: { Authorization: `Bearer ${token}` },
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ rfid_tag_uid: tag }),
           }
         );
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data?.error || `Failed to add student with RFID ${tag}`);
+        }
       }
 
       setSuccess(true);
